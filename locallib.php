@@ -291,4 +291,21 @@ class mod_hotquestion {
                                      GROUP BY q.id
                                      ORDER BY votecount DESC, q.time DESC', $params);
     }
+	 /**
+     * Return next round
+     *
+     * @return object
+     */
+    public function remove_question() {
+		global $DB;
+		if(isset($_GET['q'])){
+			$questionID = $_GET['q'];
+			$db_question = $DB->get_record('hotquestion_questions', array('id' => $questionID));
+			$DB->delete_records('hotquestion_questions', array('id'=>$db_question->id));
+			// Get an array of all votes on the question that was just deleted, then delete them.
+			$db_vote = $DB->get_records('hotquestion_votes', array('question' => $questionID));
+			$DB->delete_records('hotquestion_votes', array('question'=>$db_question->id));
+		}
+		return $this->current_round;
+    }
 }

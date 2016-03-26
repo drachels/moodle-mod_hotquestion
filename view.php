@@ -23,7 +23,7 @@
  *
  * @package   mod_hotquestion
  * @copyright 2011 Sun Zhigang
- * @copyright 2016 onwards AL Rachels drachels@drachels.com
+ * @copyright 2016 onwards AL Rachels (drachels@drachels.com)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -126,7 +126,7 @@ if (!empty($action)) {
     switch ($action) {
         case 'vote':
             if (has_capability('mod/hotquestion:vote', $context)) {
-                $q = required_param('q',  PARAM_INT);  //question id to vote
+                $q = required_param('q',  PARAM_INT);  // Question id to vote.
                 $hq->vote_on($q);
             }
             break;
@@ -137,6 +137,24 @@ if (!empty($action)) {
 				redirect('view.php?id='.$hq->cm->id, get_string('newround', 'hotquestion'));
             }
             break;
+		case 'remove':
+			if (has_capability('mod/hotquestion:manageentries', $context)) {
+				$q = required_param('q',  PARAM_INT);  // Question id to remove.
+				// Call remove function in locallib.
+				$hq->remove_question($q);
+				// Need redirect that goes to the round where removing question.
+				// Does work without it as it just defaults to current round.
+				// Trigger remove_question event.
+				$event = \mod_hotquestion\event\remove_question::create(array(
+					'objectid' => $hotquestion->id,
+					'context' => $context
+				));
+				$event->add_record_snapshot('course_modules', $cm);
+				$event->add_record_snapshot('course', $course);
+				$event->add_record_snapshot('hotquestion', $hotquestion);
+				$event->trigger();
+			}
+			break;
     }
 }
 
