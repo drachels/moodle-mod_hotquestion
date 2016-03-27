@@ -26,12 +26,13 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-$string['hotquestion:addinstance'] = 'Can add new Hot Question';
+
 $string['ago'] = '{$a} ago';
 $string['allowanonymouspost'] = 'Allow post question as anonymous';
 $string['anonymous'] = 'Anonymous';
 $string['authorinfo'] = 'Posted by {$a->user} at {$a->time}';
 $string['connectionerror'] = 'Connection error';
+$string['content'] = 'Content';
 $string['csvexport'] = 'Export to .csv';
 $string['displayasanonymous'] = 'Display as anonymous';
 $string['eventaddquestion'] = 'Added a question';
@@ -40,13 +41,16 @@ $string['eventremovequestion'] = 'Remove question';
 $string['eventupdatevote'] = 'Updated vote';
 $string['exportfilename'] = 'questions.csv';
 $string['heat'] = 'Heat';
+$string['hotquestion'] = 'Hotquestion';
 $string['hotquestionintro'] = 'Topic';
 $string['hotquestionname'] = 'Activity Name';
+$string['hotquestion:addinstance'] = 'Can add new Hot Question';
 $string['hotquestion:ask'] = 'Ask questions';
 $string['hotquestion:manage'] = 'Manage questions';
 $string['hotquestion:manageentries'] = 'View list of activities';
 $string['hotquestion:view'] = 'View questions';
 $string['hotquestion:vote'] = 'Vote on questions';
+$string['id'] = 'ID';
 $string['inputquestion'] = 'Submit your question here:';
 $string['invalidquestion'] = 'Empty questions are ignored.';
 $string['modulename'] = 'Hot Question';
@@ -64,5 +68,7 @@ $string['questionsubmitted'] = 'Your question has been submitted successfully.';
 $string['questionremove'] = 'Remove';
 $string['resethotquestion'] = 'Delete all questions and votes';
 $string['round'] = 'Round {$a}';
+$string['time'] = 'Time';
+$string['userid'] = 'Userid';
 $string['vote'] = 'Vote';
 $string['viewentries'] = 'Number of questions';
