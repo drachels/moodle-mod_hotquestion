@@ -138,6 +138,63 @@ function reset_instance($hotquestionid) {
 }
 
 /**
+ * Get all questions into an array for export as csv file.
+ * 
+ * @param int $hotquestionid
+ * @return boolean Success/Failure
+ */
+function get_question_list($hotquestionid) {
+    global $CFG, $USER, $DB;
+    $params = array();
+    $toReturn = array();
+    $questionsTblName = $CFG->prefix."hotquestion_questions";
+	$usersTblName = $CFG->prefix."user";
+//	$sql = "SELECT ".$usersTblName.".firstname, ".$usersTblName.".lastname, ".$questionsTblName.".id, ".
+//	$questionsTblName.".hotquestion, ".$questionsTblName.".content, ".
+//	$questionsTblName.".userid, ".$questionsTblName.".time, ".$questionsTblName.".anonymous".
+//	" FROM ".$questionsTblName.
+//	" LEFT JOIN ".$usersTblName." ON ".$questionsTblName.".userid = ".$usersTblName.".id".
+//	" WHERE hotquestion=".$s_id." AND ".$questionsTblName.".userid=".$u_id;
+//	$oby = " ORDER BY ".$questionsTblName.".hotquestion";
+//	$sql .= $oby;
+//	$sql .= " DESC";
+//		debugging('In function get_question_list');
+//		print_object($sql);
+//	if ($questions = $DB->get_records_sql($sql, $params)) {
+//        return $questions;
+//				print_object($sql);
+
+//	}
+//    return FALSE;
+	
+	$sql = 'SELECT COUNT(*) FROM {hotquestion_questions} WHERE userid>0';
+    return $DB->get_records_sql($sql, array($USER->id));
+	
+//$params = array($this->instance->id, $this->current_round->starttime, $this->current_round->endtime);
+
+		
+//    return $DB->get_records_sql('SELECT 
+//										CASE
+//										WHEN u.firstname = "Guest user"
+//											THEN CONCAT(u.lastname, "Anonymous")
+//											ELSE u.firstname
+//										END AS "firstname", 
+//											u.lastname AS "lastname", hq.id id, hq.hotquestion hotquestion, hq.content content, hq.userid userid,
+//											FROM_UNIXTIME(hq.time) AS TIME, hq.anonymous anonymous
+//
+//
+//											FROM {hotquestion_questions} hq
+//										JOIN {user} u ON u.id = hq.userid
+//
+//											WHERE hq.userid > 0
+//											ORDER BY hq.hotquestion, u.id', $params);
+
+
+    }
+	
+	
+	
+/**
  * Return a small object with summary information about what a
  * user has done with a given particular instance of this module
  * Used for user activity reports.

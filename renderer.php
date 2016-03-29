@@ -59,12 +59,25 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
     public function toolbar($show_new = true) {
         $output = '';
         $toolbuttons = array();
+		//$id = required_param('id', PARAM_INT);
+		//$hq = new mod_hotquestion($id);
+		//$context = context_module::instance($hq->cm->id);
 		
 		//  Print Export to .csv file message and link.
 		if ($show_new) {
-			$url = new moodle_url('/mod/hotquestion/csvexport.php', array('id'=>$this->hotquestion->cm->id));
-			$toolbuttons[] = html_writer::link($url, $this->pix_icon('t/download', get_string('csvexport','hotquestion')), array('class' => 'toolbutton'));	
-		}		
+			//if (has_capability('mod/hotquestion:manageentries',$context)){
+				$url = new moodle_url('/mod/hotquestion/csvexport.php', array('id'=>$this->hotquestion->cm->id));
+				$toolbuttons[] = html_writer::link($url, $this->pix_icon('t/download', get_string('csvexport','hotquestion')), array('class' => 'toolbutton'));	
+			//}
+		}
+		//  Print New Export to .txt file message and link.
+		if ($show_new) {
+			$options = array();
+            $options['id'] = $this->hotquestion->cm->id;
+            $options['action'] = 'download';
+			$url = new moodle_url('/mod/hotquestion/view.php', $options);
+			$toolbuttons[] = html_writer::link($url, $this->pix_icon('a/download_all', get_string('csvexport','hotquestion')), array('class' => 'toolbutton'));	
+		}
 
         //  Print next/prev round bar
         if ($this->hotquestion->get_prev_round() != null) {

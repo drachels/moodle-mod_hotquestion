@@ -291,9 +291,10 @@ class mod_hotquestion {
                                      GROUP BY q.id
                                      ORDER BY votecount DESC, q.time DESC', $params);
     }
+	
 	 /**
-     * Return next round
-     *
+     * Remove selected question and any votes
+     * that it might have.
      * @return object
      */
     public function remove_question() {
@@ -307,5 +308,55 @@ class mod_hotquestion {
 			$DB->delete_records('hotquestion_votes', array('question'=>$db_question->id));
 		}
 		return $this->current_round;
+    }
+	
+	 /**
+     * Download questions.
+     * 
+     * @return object
+     */
+    public function download_questions($array, $filename = "export.csv", $delimiter=";") {
+		global $CFG, $DB, $USER;
+		
+		    $params = array();
+			//$hqsToReturn = array();
+			$filename = ('HotQuestionExport_'.gmdate("Ymd_Hi"));
+			$filename .= 'GMT.csv';
+			header('Content-Type: text/csv');
+			header('Content-Disposition: attachement; filename="'.$filename.'";');
+			header("Pragma: no-cache");
+			header("Expires: 0");
+   
+			$file = fopen('php://output', 'w');
+			$headings = array(get_string('id', 'hotquestion'),
+			                  get_string('firstname'),
+                              get_string('lastname'),
+                              get_string('hotquestion', 'hotquestion'),
+                              get_string('content', 'hotquestion'),
+                              get_string('userid', 'hotquestion'),
+                              get_string('time', 'hotquestion'),
+                              get_string('anonymous', 'hotquestion'));
+			fputcsv($file, $headings, $delimiter);
+    // works up to this point..$hq is undefined!
+			$sql = "SELECT hq.id id,
+                       CASE
+                         WHEN u.firstname = 'Guest user'
+                           THEN CONCAT(u.lastname, 'Anonymous')
+                         ELSE u.firstname
+                         END AS 'firstname',
+                         u.lastname AS 'lastname', hq.hotquestion hotquestion, hq.content content, hq.userid userid,
+                         FROM_UNIXTIME(hq.time) AS TIME, hq.anonymous anonymous
+                       FROM {hotquestion_questions} hq
+                       JOIN {user} u ON u.id = hq.userid
+                       WHERE hq.userid > 0 AND hq.hotquestion = 9
+                       ORDER BY hq.hotquestion, u.id";
+				if ($hqs = $DB->get_records_sql($sql, $params)) {	   
+			    	foreach($hqs as $q){
+						$fields = array($q->id, $q->firstname, $q->lastname, $q->hotquestion, $q->content, $q->userid, $q->time, $q->anonymous);
+						fputcsv($file, $fields, $delimiter);
+					}
+				}
+				fclose($file);
+				exit;
     }
 }

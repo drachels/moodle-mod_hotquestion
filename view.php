@@ -155,6 +155,15 @@ if (!empty($action)) {
 				$event->trigger();
 			}
 			break;
+		case 'download':
+            if (has_capability('mod/hotquestion:manageentries', $context)) {
+				$q = $cm->instance; // Course module to download questions from.
+				//print_object($hq);
+				$hq->download_questions($q);
+                // redirect might not be needed.
+				//redirect('view.php?id='.$hq->cm->id, get_string('newround', 'hotquestion'));
+            }
+            break;
     }
 }
 
@@ -172,7 +181,7 @@ if (!$ajax){
 echo $output->container_start(null, 'questions_list');
 // Print toolbar.
 echo $output->container_start("toolbar");
-echo $output->toolbar(has_capability('mod/hotquestion:manage', $context));
+echo $output->toolbar(has_capability('mod/hotquestion:manageentries', $context));
 echo $output->container_end();
 
 // Print questions list.
