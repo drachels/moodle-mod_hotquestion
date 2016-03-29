@@ -37,6 +37,7 @@ $string['csvexport'] = 'Export to .csv';
 $string['displayasanonymous'] = 'Display as anonymous';
 $string['eventaddquestion'] = 'Added a question';
 $string['eventaddround'] = 'Opened a new round';
+$string['eventdownloadquestions'] = 'Download questions';
 $string['eventremovequestion'] = 'Remove question';
 $string['eventupdatevote'] = 'Updated vote';
 $string['exportfilename'] = 'questions.csv';

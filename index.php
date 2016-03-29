@@ -16,7 +16,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This page lists all the instances of hot question in a particular course
+ * This page lists all the instances of hot question in a particular course.
  *
  * @package   mod_hotquestion
  * @copyright 2011 Sun Zhigang
@@ -36,7 +36,7 @@ if (! $course = $DB->get_record("course", array("id" => $id))) {
 
 require_course_login($course);
 
-// Header
+// Header.
 $strhotquestions = get_string("modulenameplural", "hotquestion");
 $PAGE->set_pagelayout('incourse');
 $PAGE->set_url('/mod/hotquestion/index.php', array('id' => $id));
@@ -52,7 +52,7 @@ if (! $hotquestions = get_all_instances_in_course("hotquestion", $course)) {
     die;
 }
 
-// Sections
+// Sections.
 $usesections = course_format_uses_sections($course->format);
 if ($usesections) {
 	$modinfo = get_fast_modinfo($course);
@@ -61,7 +61,7 @@ if ($usesections) {
 
 $timenow = time();
 
-// Table data
+// Table data.
 $table = new html_table();
 
 $table->head = array();
@@ -84,7 +84,7 @@ foreach ($hotquestions as $hotquestion) {
     $context = context_module::instance($hotquestion->coursemodule);
     $entriesmanager = has_capability('mod/hotquestion:manageentries', $context);
 
-    // Section
+    // Section.
     $printsection = '';
     if ($hotquestion->section !== $currentsection) {
         if ($hotquestion->section) {

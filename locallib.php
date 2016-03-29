@@ -17,7 +17,7 @@
 
 
 /**
- * Internal library of functions for module hotquestion
+ * Internal library of functions for module hotquestion.
  *
  * All the hotquestion specific functions, needed to implement the module
  * logic, should go here. Never include this file from your lib.php!
@@ -48,7 +48,7 @@ class mod_hotquestion {
     }
 
     /**
-     * Return whether the user has voted on specified question
+     * Return whether the user has voted on specified question.
      *
      * @param int $question question id
      * @param int $user user id. -1 means current user
@@ -63,7 +63,7 @@ class mod_hotquestion {
     }
 
     /**
-     * Add a new question to current round
+     * Add a new question to current round.
      *
      * @global object
      * @global object
@@ -77,10 +77,10 @@ class mod_hotquestion {
         $data->content = trim($fromform->question);
         $data->userid = $USER->id;
         $data->time = time();
-		$context = context_module::instance($this->cm->id);	//Modified by AL Rachels for Moodle 2.6 and above.
+		$context = context_module::instance($this->cm->id);	
         if (isset($fromform->anonymous) && $fromform->anonymous && $this->instance->anonymouspost) {
             $data->anonymous = $fromform->anonymous;
-            // Assume this user is guest
+            // Assume this user is guest.
             $data->userid = $CFG->siteguest;
         }
         if (!empty($data->content)) {
@@ -103,7 +103,7 @@ class mod_hotquestion {
     }
 
     /**
-     * Vote on question
+     * Vote on question.
      *
      * @global object
      * @global object
@@ -112,7 +112,7 @@ class mod_hotquestion {
     public function vote_on($question) {
         global $CFG, $DB, $USER;
 		$votes = new StdClass();
-		$context = context_module::instance($this->cm->id);	//Modified by AL Rachels for Moodle 2.6 and above.
+		$context = context_module::instance($this->cm->id);	
         $question = $DB->get_record('hotquestion_questions', array('id'=>$question));
         if ($question && $this->can_vote_on($question)) {
 
@@ -139,7 +139,7 @@ class mod_hotquestion {
     }
 
     /**
-     * Whether can vote on the question
+     * Whether can vote on the question.
      *
      * @param object or int $question
      * @param object $user null means current user
@@ -163,25 +163,25 @@ class mod_hotquestion {
     }
 
     /**
-     * Open a new round and close the old one
+     * Open a new round and close the old one.
      *
      * @global object
      */
     public function add_new_round() {
         global $USER,$CFG,$DB;
 		
-        // Close the latest round
+        // Close the latest round.
 		$rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $this->instance->id), 'id DESC', '*', 0, 1);
 		$old = array_pop($rounds);
         $old->endtime = time();
 		$DB->update_record('hotquestion_rounds', $old);
 		
-        // Open a new round
+        // Open a new round.
 		$new = new StdClass();
         $new->hotquestion = $this->instance->id;
         $new->starttime = time();
         $new->endtime = 0;
-		$context = context_module::instance($this->cm->id);	//Modified by AL Rachels for Moodle 2.6 and above.
+		$context = context_module::instance($this->cm->id);	
         $rid = $DB->insert_record('hotquestion_rounds', $new);
 		
 			if ($CFG->version > 2014051200) { // Moodle 2.7+
@@ -198,7 +198,7 @@ class mod_hotquestion {
     }
 
     /**
-     * Set current round to show
+     * Set current round to show.
      *
      * @global object
      * @param int $roundid
@@ -208,7 +208,7 @@ class mod_hotquestion {
 
         $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $this->instance->id), 'id ASC');
         if (empty($rounds)) {
-            // Create the first round
+            // Create the first round.
 			$round = new StdClass();
             $round->starttime = time();
             $round->endtime = 0;
@@ -221,21 +221,21 @@ class mod_hotquestion {
             $this->current_round = $rounds[$roundid];
 
             $ids = array_keys($rounds);
-            // Search previous round
+            // Search previous round.
             $current_key = array_search($roundid, $ids);
             if (array_key_exists($current_key - 1, $ids)) {
                 $this->prev_round = $rounds[$ids[$current_key - 1]];
             } else {
                 $this->prev_round = null;
             }
-            // Search next round
+            // Search next round.
             if (array_key_exists($current_key + 1, $ids)) {
                 $this->next_round = $rounds[$ids[$current_key + 1]];
             } else {
                 $this->next_round = null;
             }
         } else {
-            // Use the last round
+            // Use the last round.
             $this->current_round = array_pop($rounds);
             $this->prev_round = array_pop($rounds);
             $this->next_round = null;
@@ -243,7 +243,7 @@ class mod_hotquestion {
     }
 
     /**
-     * Return current round
+     * Return current round.
      *
      * @return object
      */
@@ -252,7 +252,7 @@ class mod_hotquestion {
     }
 
     /**
-     * Return previous round
+     * Return previous round.
      *
      * @return object
      */
@@ -261,7 +261,7 @@ class mod_hotquestion {
     }
 
     /**
-     * Return next round
+     * Return next round.
      *
      * @return object
      */
@@ -270,10 +270,10 @@ class mod_hotquestion {
     }
 
     /**
-     * Return questions according to $current_round
+     * Return questions according to $current_round.
      *
      * @global object
-     * @return all questions with vote count in current round
+     * @return all questions with vote count in current round.
      */
     public function get_questions() {
         global $DB;
@@ -293,8 +293,8 @@ class mod_hotquestion {
     }
 	
 	 /**
-     * Remove selected question and any votes
-     * that it might have.
+     * Remove selected question and any votes that it might have.
+     * 
      * @return object
      */
     public function remove_question() {
@@ -317,46 +317,67 @@ class mod_hotquestion {
      */
     public function download_questions($array, $filename = "export.csv", $delimiter=";") {
 		global $CFG, $DB, $USER;
-		
-		    $params = array();
-			//$hqsToReturn = array();
-			$filename = ('HotQuestionExport_'.gmdate("Ymd_Hi"));
-			$filename .= 'GMT.csv';
-			header('Content-Type: text/csv');
-			header('Content-Disposition: attachement; filename="'.$filename.'";');
-			header("Pragma: no-cache");
-			header("Expires: 0");
+			$data = new StdClass();
+			$data->hotquestion = $this->instance->id;
+			$context = context_module::instance($this->cm->id);
+			// Trigger download_questions event.
+			$event = \mod_hotquestion\event\download_questions::create(array(
+				'objectid' => $data->hotquestion,
+				'context' => $context
+			));
+			$event->trigger();
+			
+		// Construct sql query and filename based on admin or teacher.
+		// Add filename details based on course and HQ activity name.
+		if (is_siteadmin($USER->id)){
+			$whichhqs = ('AND hq.hotquestion > 0');
+			$filename = ('All_Site');
+		} else {
+			$whichhqs = ('AND hq.hotquestion = ');
+			$whichhqs .= ($this->instance->id);
+			$filename = ($this->course->shortname).'_';
+			$filename .= ($this->instance->name);
+		}
+		$filename .= '_HQ_Questions_Exported_On_'.gmdate("Ymd_Hi").'GMT.csv';
+
+		$params = array();
+
+		header('Content-Type: text/csv');
+		header('Content-Disposition: attachement; filename="'.$filename.'";');
+		header("Pragma: no-cache");
+		header("Expires: 0");
    
-			$file = fopen('php://output', 'w');
-			$headings = array(get_string('id', 'hotquestion'),
-			                  get_string('firstname'),
-                              get_string('lastname'),
-                              get_string('hotquestion', 'hotquestion'),
-                              get_string('content', 'hotquestion'),
-                              get_string('userid', 'hotquestion'),
-                              get_string('time', 'hotquestion'),
-                              get_string('anonymous', 'hotquestion'));
-			fputcsv($file, $headings, $delimiter);
-    // works up to this point..$hq is undefined!
-			$sql = "SELECT hq.id id,
-                       CASE
-                         WHEN u.firstname = 'Guest user'
-                           THEN CONCAT(u.lastname, 'Anonymous')
-                         ELSE u.firstname
-                         END AS 'firstname',
-                         u.lastname AS 'lastname', hq.hotquestion hotquestion, hq.content content, hq.userid userid,
-                         FROM_UNIXTIME(hq.time) AS TIME, hq.anonymous anonymous
-                       FROM {hotquestion_questions} hq
-                       JOIN {user} u ON u.id = hq.userid
-                       WHERE hq.userid > 0 AND hq.hotquestion = 9
-                       ORDER BY hq.hotquestion, u.id";
-				if ($hqs = $DB->get_records_sql($sql, $params)) {	   
-			    	foreach($hqs as $q){
-						$fields = array($q->id, $q->firstname, $q->lastname, $q->hotquestion, $q->content, $q->userid, $q->time, $q->anonymous);
-						fputcsv($file, $fields, $delimiter);
-					}
-				}
-				fclose($file);
-				exit;
+		$file = fopen('php://output', 'w');
+		$params = array(get_string('id', 'hotquestion'),
+		                get_string('firstname'),
+                        get_string('lastname'),
+                        get_string('hotquestion', 'hotquestion'),
+                        get_string('content', 'hotquestion'),
+                        get_string('userid', 'hotquestion'),
+                        get_string('time', 'hotquestion'),
+                        get_string('anonymous', 'hotquestion'));
+		fputcsv($file, $params, $delimiter);
+
+		$sql = "SELECT hq.id id,
+                  CASE
+                    WHEN u.firstname = 'Guest user'
+                    THEN CONCAT(u.lastname, 'Anonymous')
+                    ELSE u.firstname
+                  END AS 'firstname',
+                          u.lastname AS 'lastname', hq.hotquestion hotquestion, hq.content content, hq.userid userid,
+                  FROM_UNIXTIME(hq.time) AS TIME, hq.anonymous anonymous
+                  FROM {hotquestion_questions} hq
+                  JOIN {user} u ON u.id = hq.userid
+                  WHERE hq.userid > 0 ";
+		$sql .= ($whichhqs);
+		$sql .= " ORDER BY hq.hotquestion, u.id";
+		if ($hqs = $DB->get_records_sql($sql, $params)) {	   
+			foreach($hqs as $q){
+				$fields = array($q->id, $q->firstname, $q->lastname, $q->hotquestion, $q->content, $q->userid, $q->time, $q->anonymous);
+			fputcsv($file, $fields, $delimiter);
+			}
+		}
+		fclose($file);
+		exit;
     }
 }

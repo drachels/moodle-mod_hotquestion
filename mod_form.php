@@ -17,7 +17,7 @@
 
 
 /**
- * The main hotquestion configuration form
+ * The main hotquestion configuration form.
  *
  * It uses the standard core Moodle formslib. For more info about them, please
  * visit: http://docs.moodle.org/en/Development:lib/formslib.php
@@ -40,10 +40,10 @@ class mod_hotquestion_mod_form extends moodleform_mod {
         $mform =& $this->_form;
 
 //-------------------------------------------------------------------------------
-    //  Adding the "general" fieldset, where all the common settings are showed
+		// Adding the "general" fieldset, where all the common settings are shown.
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
-    //  Adding the standard "name" field
+		// Adding the standard "name" field.
         $mform->addElement('text', 'name', get_string('hotquestionname', 'hotquestion'), array('size'=>'64'));
         if (!empty($CFG->formatstringstriptags)) {
             $mform->setType('name', PARAM_TEXT);
@@ -53,21 +53,21 @@ class mod_hotquestion_mod_form extends moodleform_mod {
         $mform->addRule('name', null, 'required', null, 'client');
         $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
 
-    //  Adding the standard "intro" and "introformat" fields
+		// Adding the standard "intro" and "introformat" fields.
         $this->standard_intro_elements();
 
 //-------------------------------------------------------------------------------
-    //  Adding the rest of hotquestion settings, spreading all them into this fieldset
-    //  or adding more fieldsets ('header' elements) if needed for better logic
-        //  Adding 'anonymouspost' field
+		// Adding the rest of hotquestion settings, spreading them into this fieldset
+		// or adding more fieldsets ('header' elements), if needed for better logic.
+        // Adding 'anonymouspost' field
         $mform->addElement('selectyesno', 'anonymouspost', get_string('allowanonymouspost', 'hotquestion'));
         $mform->setDefault('anonymouspost', '1');
 
 //-------------------------------------------------------------------------------
-        // add standard elements, common to all modules
+        // Add standard elements, common to all modules.
         $this->standard_coursemodule_elements();
 //-------------------------------------------------------------------------------
-        // add standard buttons, common to all modules
+        // Add standard buttons, common to all modules.
         $this->add_action_buttons();
 
     }

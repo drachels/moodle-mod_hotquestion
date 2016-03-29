@@ -17,7 +17,7 @@
 
 
 /**
- * Library of interface functions and constants for module hotquestion
+ * Library of interface functions and constants for module hotquestion.
  *
  * All the core Moodle functions, neeeded to allow the module to work
  * integrated in Moodle should be placed here.

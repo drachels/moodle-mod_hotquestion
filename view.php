@@ -50,7 +50,7 @@ $hq = new mod_hotquestion($id, $roundid);
 // Confirm login.
 require_login($hq->course, true, $hq->cm);
 
-$context = context_module::instance($hq->cm->id);	// Modified for Moodle 2.6 and above.
+$context = context_module::instance($hq->cm->id);
 
 $entriesmanager = has_capability('mod/hotquestion:manageentries', $context);
 $canask = has_capability('mod/hotquestion:ask', $context);
@@ -79,7 +79,7 @@ if ($CFG->version > 2014051200) { // Moodle 2.7+
 	add_to_log($hq->course->id, 'hotquestion', 'view', "view.php?id={$hq->cm->id}", $hq->instance->name, $hq->cm->id);
 }
 
-// Set page
+// Set page.
 if (!$ajax) {
     $PAGE->set_url('/mod/hotquestion/view.php', array('id' => $hq->cm->id));
     $PAGE->set_title($hq->instance->name);
@@ -158,10 +158,8 @@ if (!empty($action)) {
 		case 'download':
             if (has_capability('mod/hotquestion:manageentries', $context)) {
 				$q = $cm->instance; // Course module to download questions from.
-				//print_object($hq);
+				// Call download question function in locallib.
 				$hq->download_questions($q);
-                // redirect might not be needed.
-				//redirect('view.php?id='.$hq->cm->id, get_string('newround', 'hotquestion'));
             }
             break;
     }
