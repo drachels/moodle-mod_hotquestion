@@ -366,7 +366,7 @@ class hotquestion_form extends moodleform {
         $mform->setType('id', PARAM_INT);
 
         $submitgroup = array();
-        $submitgroup[] =& $mform->createElement('submit', 'submitbutton', get_string('postbutton', 'hotquestion'));
+        $submitgroup[] =& $mform->createElement('submit', 'submitbutton', get_string('post', 'hotquestion'));
         if ($allowanonymous) {
             $submitgroup[] =& $mform->createElement('checkbox', 'anonymous', '', get_string('displayasanonymous', 'hotquestion'));
             $mform->setType('anonymous', PARAM_BOOL);

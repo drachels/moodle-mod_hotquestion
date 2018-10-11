@@ -167,6 +167,7 @@ $string['notavailable'] = '<b>Not currently available!<br></b>';
 $string['notapproved'] = '<b>This entry is not currently approved for viewing.<br></b>';
 $string['pluginadministration'] = 'Hot question administration';
 $string['pluginname'] = 'Hot Question';
+$string['post'] = 'Post';
 $string['previousround'] = 'Previous round';
 $string['postbutton'] = 'Click to post';
 $string['postmaxgrade'] = 'Questions for max grading';
