@@ -82,6 +82,7 @@ $string['notavailable'] = '<b>Not currently available!<br></b>';
 $string['notapproved'] = '<b>This entry is not currently approved for viewing.<br></b>';
 $string['pluginadministration'] = 'Hot question administration';
 $string['pluginname'] = 'Hot Question';
+$string['post'] = 'Post';
 $string['previousround'] = 'Previous round';
 $string['privacy:metadata:hotquestion_questions'] = "Information about the user's entries for a given Hot Question activity. ";
 $string['privacy:metadata:hotquestion_questions:userid'] = 'The ID of the user that posted this entry.';
