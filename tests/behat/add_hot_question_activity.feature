@@ -4,7 +4,7 @@ Feature: Add HotQuestion activity
   As a teacher
   I need to be able to create HotQuestion activities
 
-  Scenario: Add a hotquestion activity and complete the activity as a student
+  Scenario: Add a hotquestion activity and complete the activity as a student and check logs as a teacher
     Given the following "users" exist:
       | username | firstname | lastname | email                |
       | teacher1 | Teacher   | 1        | teacher1@example.com |
@@ -24,7 +24,7 @@ Feature: Add HotQuestion activity
     And I log out
     When I log in as "student1"
     And I am on "Course 1" course homepage
-    And I follow "Test hotquestion name"
+    And I follow "Test Hot Question name"
     And I set the following fields to these values:
       | Submit your question here: | First question |
     And I press "Click to post"
@@ -32,10 +32,13 @@ Feature: Add HotQuestion activity
       | Submit your question here: | Second question |
     And I set the field "Display as anonymous" to "1"
     And I press "Click to post"
-    # Admin User verifies his posts are logged.
+    And I log out
+    When I log in as "teacher1"
+    And I am on "Course 1" course homepage
     And I navigate to "Logs" in current page administration
-    Then I should see "Admin User" in the "#report_log_r1_c1" "css_element"
-    And I should see "Added a question" in the "#report_log_r1_c5" "css_element"
-    And I should see "Admin User" in the "#report_log_r4_c1" "css_element"
-    And I should see "Added a question" in the "#report_log_r4_c5" "css_element"
+    And I press "Get these logs"
+    Then I should see "Student 1" in the "#report_log_r2_c1" "css_element"
+    And I should see "Added a question" in the "#report_log_r2_c5" "css_element"
+    And I should see "Student 1" in the "#report_log_r5_c1" "css_element"
+    And I should see "Added a question" in the "#report_log_r5_c5" "css_element"
     Then I log out
