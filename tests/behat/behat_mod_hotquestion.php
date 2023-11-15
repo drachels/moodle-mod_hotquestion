@@ -38,7 +38,7 @@ class behat_mod_hotquestion extends behat_base {
     /**
      * Step to open current course or activity settings page (language string changed between 3.11 and 4.0)
      *
-     * @When /^I open course or activity settings page$/
+     * @When /^I open course or activity (hotquestion) settings page$/
      * @return void
      */
     public function i_open_course_or_activity_settings_page(): void {

@@ -569,7 +569,7 @@ class mod_hotquestion {
 
         if (is_siteadmin($USER->id)) {
             // For an admin, we want every hotquestion activity.
-            $whichhqs = ('AND hq.hotquestion > 0');
+            $whichhqs = ('AND hq.hotquestion IS NOT NULL');
             $csv->filename = clean_filename(get_string('exportfilenamep1', 'hotquestion'));
         } else {
             // For a teacher, we want only the current hotquestion activity.
@@ -663,7 +663,7 @@ class mod_hotquestion {
         if ($hqs = $DB->get_records_sql($sql, $fields)) {
             $firstrowflag = 1;
             if (is_siteadmin($USER->id)) {
-                $currenthqhotquestion = $hqs[1]->hotquestion;
+                $currenthqhotquestion = !empty($hqs[1]->hotquestion) ? $hqs[1]->hotquestion : 'Hotquestion';
             } else {
                 $currenthqhotquestion = '';
             }

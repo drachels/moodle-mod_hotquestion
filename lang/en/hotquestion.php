@@ -174,6 +174,12 @@ $string['postmaxgrade_help'] = 'The number of questions required to obtain the m
 
 This is nominally a count of questions, but the value attained by a user may be improved by heat factor (questions with greater heat count more)
 and by voting on other questions (a user may improve the grade by participating in voting for questions by other students).';
+$string['privacy:metadata:hotquestion_grades'] = 'Grading data for hotquestion instances';
+$string['privacy:metadata:hotquestion_grades:hotquestion'] = 'The ID of the Hot Question activity in which the content was posted.';
+$string['privacy:metadata:hotquestion_grades:path'] = 'Ratings';
+$string['privacy:metadata:hotquestion_grades:userid'] = 'The ID of the user that posted this grade.';
+$string['privacy:metadata:hotquestion_grades:rawrating'] = 'Raw rating';
+$string['privacy:metadata:hotquestion_grades:timemodified'] = 'Updated on';
 $string['privacy:metadata:hotquestion_questions'] = "Information about the user's entries for a given Hot Question activity. ";
 $string['privacy:metadata:hotquestion_questions:userid'] = 'The ID of the user that posted this entry.';
 $string['privacy:metadata:hotquestion_questions:hotquestion'] = 'The ID of the Hot Question activity in which the content was posted.';

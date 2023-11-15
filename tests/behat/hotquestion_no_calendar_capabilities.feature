@@ -16,7 +16,8 @@ Feature: HotQuestion with no calendar capabilites
       | teacher1 | C1 | editingteacher |
     And I log in as "admin"
     And I am on "Course 1" course homepage with editing mode on
-    And I navigate to "Users > Permissions" in current page administration
+    And I navigate to "Participants" in current page administration
+    And I select "Permissions" from the "jump" singleselect
     And I override the system permissions of "Teacher" role with:
       | capability | permission |
       | moodle/calendar:manageentries | Prohibit |
@@ -35,8 +36,8 @@ Feature: HotQuestion with no calendar capabilites
     And I log out
     When I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
-    And I follow "Test hotquestion name"
-    And I navigate to "Edit settings" in current page administration
+    And I click on ".modtype_hotquestion a" "css_element"
+    And I navigate to "Settings" in current page administration
     And I set the following fields to these values:
       | id_timeopen_year | 2018 |
       | id_timeclose_year | 2018 |

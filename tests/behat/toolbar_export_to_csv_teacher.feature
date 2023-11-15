@@ -159,7 +159,9 @@ Feature: Teacher can export questions from current HotQuestion activity
     And I should see "Posted by Admin User"
     And following "Export to .csv" should download between "700" and "900" bytes
     # Verify download by Teacher 1 was logged.
-    And I navigate to "Logs" in current page administration
-    Then I should see "Teacher 1" in the "#report_log_r0_c1" "css_element"
-    And I should see "Download questions" in the "#report_log_r0_c5" "css_element"
+    And I am on "Course 1" course homepage
+    And I navigate to "Reports > Logs" in current page administration
+    And I click on "Get these logs" "button"
+    Then I should see "Teacher 1" in the "#report_log_r1_c1" "css_element"
+    And I should see "Download questions" in the "#report_log_r1_c5" "css_element"
     Then I log out

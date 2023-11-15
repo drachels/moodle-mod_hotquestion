@@ -18,24 +18,29 @@ Feature: Add HotQuestion activity
       | student1 | C1 | student |
     And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
-    And I add a "Hot Question" to section "1" and I fill the form with:
-      | Activity Name | Test Hot Question name |
-      | Description | Test Hot Question Description |
+    And the following "activity" exists:
+      | activity    | hotquestion                                  |
+      | course      | C1                                           |
+      | name        | Test Hot Question name                       |
+      | intro       | Question                                     |
+      | section     | 1                                            |
     And I log out
     When I log in as "student1"
     And I am on "Course 1" course homepage
     And I follow "Test Hot Question name"
-    And I set the following fields to these values:
-      | Submit your question here: | First question |
+    And I click on "#id_text_editoreditable" "css_element"
+    And I type "First question"
     And I press "Click to post"
-    And I set the following fields to these values:
-      | Submit your question here: | Second question |
+    And I click on "#id_text_editoreditable" "css_element"
+    And I type "Second question"
     And I set the field "Display as anonymous" to "1"
     And I press "Click to post"
+    And I log out
     # Admin User verifies his posts are logged.
-    And I navigate to "Logs" in current page administration
-    Then I should see "Admin User" in the "#report_log_r1_c1" "css_element"
-    And I should see "Added a question" in the "#report_log_r1_c5" "css_element"
-    And I should see "Admin User" in the "#report_log_r4_c1" "css_element"
-    And I should see "Added a question" in the "#report_log_r4_c5" "css_element"
+    Then I log in as "admin"
+    And I am on "Course 1" course homepage
+    And I navigate to "Reports > Logs" in current page administration
+    And I click on "Get these logs" "button"
+    Then I should see "Student 1" in the "#report_log_r2_c1 a" "css_element"
+    And I should see "Added a question" in the "#report_log_r2_c5 a" "css_element"
     Then I log out

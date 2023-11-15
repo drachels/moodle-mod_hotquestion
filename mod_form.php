@@ -254,6 +254,7 @@ class mod_hotquestion_mod_form extends moodleform_mod {
 
         // Add standard buttons, common to all modules.
         $this->add_action_buttons();
+        $this->_form->disable_form_change_checker();
     }
 
     /**
@@ -426,5 +427,6 @@ class hotquestion_form extends moodleform {
             $mform->setType('anonymous', PARAM_BOOL);
         }
         $mform->addGroup($submitgroup);
+        $this->_form->disable_form_change_checker();
     }
 }

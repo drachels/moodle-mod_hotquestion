@@ -189,6 +189,24 @@ class provider implements \core_privacy\local\metadata\provider,
              WHERE ctx.id = :contextid
         ";
         $userlist->add_from_sql('userid', $sql, $params);
+
+        $sql = "
+            SELECT hqg.userid
+              FROM {hotquestion_grades} hqg
+              JOIN {hotquestion_questions} hq
+                ON hq.id = hqg.hotquestion
+              JOIN {hotquestion} h
+                ON h.id = hq.hotquestion
+              JOIN {course_modules} cm
+                ON cm.instance = h.id
+               AND cm.module = :modid
+              JOIN {context} ctx
+                ON ctx.instanceid = cm.id
+               AND ctx.contextlevel = :contextlevel
+             WHERE ctx.id = :contextid
+        ";
+        $userlist->add_from_sql('userid', $sql, $params);
+
     }
     /**
      * Export personal data for the given approved_contextlist. User and context information is contained within the contextlist.
@@ -295,6 +313,45 @@ class provider implements \core_privacy\local\metadata\provider,
         if ($itemdata) {
             self::export_hotquestion_data_for_user($itemdata, $lastcmid, $user);
         }
+
+        // Export grades.
+        $user = $contextlist->get_user();
+        list($contextsql, $contextparams) = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
+
+        $sql = "SELECT hqg.id AS id,
+                       cm.id AS cmid,
+                       hqg.hotquestion AS hotquestion,
+                       hqg.id AS id,
+                       hqg.userid AS userid,
+                       hqg.rawrating as rating,
+                       hqg.timemodified as timemodified
+                  FROM {context} c
+            INNER JOIN {course_modules} cm
+                    ON cm.id = c.instanceid
+             LEFT JOIN {hotquestion_questions} hq
+                    ON hq.hotquestion = cm.instance
+             LEFT JOIN {hotquestion_grades} hqg
+                    ON hqg.hotquestion = hq.id
+                 WHERE c.id $contextsql
+                   AND hqg.userid = :userid
+              ORDER BY cm.id, hq.id DESC";
+
+        $params = [
+                'userid' => $user->id,
+            ] + $contextparams;
+
+        $records = $DB->get_records_sql($sql, $params);
+        foreach ($records as $record) {
+            $context = \context_module::instance($record->cmid);
+            $data = (object)[
+              'hotquestion' => $record->hotquestion,
+              'grade' => $record->rating,
+              'time' => transform::datetime($record->timemodified)
+            ];
+            writer::with_context($context)->export_data([get_string('privacy:metadata:hotquestion_grades:path',
+                'mod_hotquestion')], $data);
+        }
+
     }
 
 
@@ -398,6 +455,7 @@ class provider implements \core_privacy\local\metadata\provider,
                 list($isql, $params) = $DB->get_in_or_equal($itemids, SQL_PARAMS_NAMED);
                 $params['userid'] = $userid;
                 $DB->delete_records_select('hotquestion_votes', "id $isql AND voter = :userid", $params);
+                $DB->delete_records_select('hotquestion_grades', "id $isql AND userid = :userid", $params);
                 $params = ['instanceid' => $cm->instance, 'userid' => $userid];
                 $DB->delete_records_select('hotquestion_questions', 'hotquestion = :instanceid AND userid = :userid', $params);
             }
@@ -440,6 +498,12 @@ class provider implements \core_privacy\local\metadata\provider,
         $DB->delete_records_select(
             'hotquestion_votes',
             "voter $insql AND id $itsql",
+            array_merge($inparams, $itparams)
+        );
+
+        // Delete hot questions grades.
+        $DB->delete_records_select('hotquestion_grades',
+            "userid $insql AND hotquestion $itsql",
             array_merge($inparams, $itparams)
         );
     }
