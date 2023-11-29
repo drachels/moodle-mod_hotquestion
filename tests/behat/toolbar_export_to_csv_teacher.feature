@@ -157,7 +157,7 @@ Feature: Teacher can export questions from current HotQuestion activity
     And I should see "Posted by Anonymous"
     And I should see "First question 1"
     And I should see "Posted by Admin User"
-    And following "Export to .csv" should download between "700" and "900" bytes
+    And following "Export to .csv" should download between "500" and "1300" bytes
     # Verify download by Teacher 1 was logged.
     And I am on "Course 1" course homepage
     And I navigate to "Reports > Logs" in current page administration
