@@ -28,11 +28,11 @@ Feature: Add HotQuestion activity
     When I log in as "student1"
     And I am on "Course 1" course homepage
     And I follow "Test Hot Question name"
-    And I click on "#id_text_editoreditable" "css_element"
-    And I type "First question"
+    And I set the following fields to these values:
+      | Submit your question here | First question |
     And I press "Click to post"
-    And I click on "#id_text_editoreditable" "css_element"
-    And I type "Second question"
+    And I set the following fields to these values:
+      | Submit your question here | Second question |
     And I set the field "Display as anonymous" to "1"
     And I press "Click to post"
     And I log out
