@@ -45,10 +45,12 @@ Feature: Teachers and admin users can start new question rounds
     And I follow "Open a new round"
     # Verify new round by teacher was logged.
     And I am on "Course 1" course homepage
-    And I navigate to "Reports > Logs" in current page administration
-    And I click on "Get these logs" "button"
-    Then I should see "Teacher 1" in the "#report_log_r2_c1" "css_element"
-    And I should see "Opened a new round" in the "#report_log_r2_c5" "css_element"
+    When I navigate to "Reports" in current page administration
+    And I click on "Logs" "link"
+    And I set the field "menumodid" to "Test hotquestion name"
+    And I press "Get these logs"
+    Then I should see "Teacher 1" in the "#report_log_r1_c1" "css_element"
+    And I should see "Opened a new round" in the "#report_log_r1_c5" "css_element"
     Then I log out
 	# Student 2 adds posts in new round.
     Given I log in as "student2"

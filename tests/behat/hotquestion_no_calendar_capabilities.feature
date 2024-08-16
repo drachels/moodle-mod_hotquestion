@@ -20,23 +20,21 @@ Feature: HotQuestion with no calendar capabilites
     And I override the system permissions of "Teacher" role with:
       | capability | permission |
       | moodle/calendar:manageentries | Prohibit |
-    And I am on "Course 1" course homepage
-    And I add a "Hot Question" to section "1" and I fill the form with:
+    And I add a hotquestion activity to course "Course 1" section "1"
+    And I set the following fields to these values:
       | Activity Name | Test hotquestion name |
       | Description | Test hotquestion description |
       | id_timeopen_enabled | 1 |
       | id_timeopen_day | 1 |
       | id_timeopen_month | 1 |
-      | id_timeopen_year | 2017 |
+      | id_timeopen_year | 2034 |
       | id_timeclose_enabled | 1 |
       | id_timeclose_day | 1 |
       | id_timeclose_month | 2 |
-      | id_timeclose_year | 2017 |
+      | id_timeclose_year | 2034 |
+    And I press "Save and return to course"
     And I log out
-    When I log in as "teacher1"
-    And I am on "Course 1" course homepage with editing mode on
-    And I click on ".modtype_hotquestion a" "css_element"
-    And I navigate to "Settings" in current page administration
+    When I am on the "Test hotquestion name" "mod_hotquestion > Edit" page logged in as "teacher1"
     And I set the following fields to these values:
       | id_timeopen_year | 2018 |
       | id_timeclose_year | 2018 |

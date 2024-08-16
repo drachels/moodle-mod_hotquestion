@@ -15,23 +15,24 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the version of hotquestion.
- *
- * This code fragment is called by moodle_needs_upgrading() and
- * /admin/index.php
+ * Definition of HotQuestion scheduled tasks.
  *
  * @package   mod_hotquestion
- * @copyright 2011 Sun Zhigang
- * @copyright 2016 onwards AL Rachels drachels@drachels.com
+ * @category  task
+ * @copyright 2024 AL Rachels <drachels@drachels.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die(); // @codingStandardsIgnoreLine
 
-$plugin->version = 2024070700; // The current module version (Date: YYYYMMDDXX).
-$plugin->requires = 2021051700; // Requires Moodle 3.11 version.
-$plugin->cron = 60; // Period for cron to check this module (secs).
-$plugin->component = 'mod_hotquestion';
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = "4.2.1 (Build: 2024070700)"; // User-friendly version number.
-$plugin->supported = [311, 404];
+$tasks = [
+    [
+        'classname' => 'mod_hotquestion\task\cron_task',
+        'blocking' => 0,
+        'minute' => '*',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
+];

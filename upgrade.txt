@@ -9,23 +9,47 @@ This files describes changes in the Hot Question code.
 20220821 HotQuestion_911 - Need to see about including grades in the Export tool.
 20230120 HotQuestion_995 - The grade table needs more info included in the download. 
     Some items (3) have been done. Still have others (3) to do.
+20231201 HotQuestion_1123 - Allow the 'submit your question' text area to be plain
+    text #61. 20231201 Started investigating how to do this.
 
-=== 4.1.9 === pending
-20231027 HotQuestion_1105 - When, Questions for max grading, is not one or more,
+
+=== 4.2.1 === 20240701 pending
+20220716  HotQuestion_892 - HotQuestion does not have a cron_task.php file. Added the
+    file with code for completion update_state. See ticket for details.
+20240625 HotQuestion_1255bt - Hot Question Activity Completion possible bug #97. Made a lot
+    of changes to the completion code. See ticket for details.
+20240706 HotQuestion_1256 - The language string for entries_viewed is missing. Added
+    the missing string, $string['evententriesviewed'] = 'Viewed questions';.
+20240706 HotQuestion_1257 - The language string for entry_updated is missing. Added
+    the missing string, $string['evententryupdated'] = 'Updated question';.
+ 
+
+
+
+=== 4.2.0 === 20240209 released 20240210
+20240109 HotQuestion_1162v - Hot Question - Missing privacy metadata for
+    mdl_hotquestion_grades table github issue #92. Reviewed and approved
+    pull request on github. Added three strings and added hotquestion_grades
+    to privacy metadata.
+20240209 HotQuestion_1204v - HotQuestion - Feature request - Hide the visibility
+    preference when Approval Required is set to No. Adding an if check on $hotquestion->
+    approval to control whether or not the visibility selector is shown. If approval
+    is not required, the the selector is hidden.
+
+=== 4.1.9 === 2023112600 released 2023112600
+20231027 HotQuestion_1105v - When, Questions for max grading, is not one or more,
     you get a non-fatal divide by zero error. Changed code in line 843 of lib.php file
-    to frevent $factor from being zero.
-20231101 HotQuestion_1110 - Can not select just "Student must add question" as the
+    to prevent $factor from being zero.
+20231101 HotQuestion_1110v - Can not select just "Student must add question" as the
     criteria for Completion Tracking #87. Changed default settings from 1 to 0, for,
     $defaultvalues['completionpost'] = 0; and for $defaultvalues['completionvote'] = 0;
     in the mod_form.php file.
-20231122 HotQuestion_1120 - Users unable to view hot questions when course is in
+20231122 HotQuestion_1120v - Users unable to view hot questions when course is in
     Read-Only mode #88. Made changes to view.php where I added a new line 62 and
     then modified line 64, which added a new view capability. Picture is in
     FAQ>HotQuestion>CourseReadOnlyContext.
-20231123 HotQuestion_1121 - Vote and unvote actions undo / toggle on page reload #89.
+20231123 HotQuestion_1121v - Vote and unvote actions undo / toggle on page reload #89.
     Made changes in locallib.php. See the ticket for details.
-
-
 
 === 4.1.8.02+ === 2023101702 released 2023102500
 20231025 HotQuestion_1104v - Error when deleting data for user Issue #86 at github.
@@ -360,6 +384,9 @@ This files describes changes in the Hot Question code.
     and emoji's. Got it working in just a couple of hours, mostly looking for the
     best place to add the code. Does not support audio and video recording. Will do
     that, hopefully, in a later release.
+20231201 Late entry. There were three missnamed /classes/event files, each starting
+    with 'xxx...' that were dropped in this release. This relates to issue #47 at
+    github.
 
 === 3.9.2 ===
 20210215 HotQuestion_669, Need round indicator between the round nav icons. Completed

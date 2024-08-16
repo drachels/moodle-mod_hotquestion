@@ -36,13 +36,16 @@ Feature: Users can post anonymous or named entries to hotquestion
     And I set the field "Display as anonymous" to "1"
     And I press "Click to post"
 	# Admin User verifies his posts are logged.
+    And I log in as "teacher1"
     And I am on "Course 1" course homepage
-    And I navigate to "Reports > Logs" in current page administration
-    And I click on "Get these logs" "button"
-    Then I should see "Admin User" in the "#report_log_r2_c1" "css_element"
-    And I should see "Added a question" in the "#report_log_r2_c5" "css_element"
-    And I should see "Admin User" in the "#report_log_r5_c1" "css_element"
-    And I should see "Added a question" in the "#report_log_r5_c5" "css_element"
+    When I navigate to "Reports" in current page administration
+    And I click on "Logs" "link"
+    And I set the field "menumodid" to "Test hotquestion name"
+    And I press "Get these logs"
+    Then I should see "Admin User" in the "#report_log_r1_c1" "css_element"
+    And I should see "Added a question" in the "#report_log_r1_c5" "css_element"
+    And I should see "Admin User" in the "#report_log_r4_c1" "css_element"
+    And I should see "Added a question" in the "#report_log_r4_c5" "css_element"
     Then I log out
     #Teacher 1 posts an entry
     Given I log in as "teacher1"
@@ -57,12 +60,14 @@ Feature: Users can post anonymous or named entries to hotquestion
     And I press "Click to post"
     # Teacher 1 verifies his posts are logged.
     And I am on "Course 1" course homepage
-    And I navigate to "Reports > Logs" in current page administration
-    And I click on "Get these logs" "button"
-    Then I should see "Teacher 1" in the "#report_log_r2_c1" "css_element"
-    And I should see "Added a question" in the "#report_log_r2_c5" "css_element"
-    And I should see "Teacher 1" in the "#report_log_r5_c1" "css_element"
-    And I should see "Added a question" in the "#report_log_r5_c5" "css_element"
+    When I navigate to "Reports" in current page administration
+    And I click on "Logs" "link"
+    And I set the field "menumodid" to "Test hotquestion name"
+    And I press "Get these logs"
+    Then I should see "Teacher 1" in the "#report_log_r1_c1" "css_element"
+    And I should see "Added a question" in the "#report_log_r1_c5" "css_element"
+    And I should see "Teacher 1" in the "#report_log_r4_c1" "css_element"
+    And I should see "Added a question" in the "#report_log_r4_c5" "css_element"
     Then I log out
     #Non-editing teacher 2 posts an entry
     Given I log in as "teacher2"
@@ -77,12 +82,14 @@ Feature: Users can post anonymous or named entries to hotquestion
     And I press "Click to post"
     # Teacher 2 verifies his posts are logged.
     And I am on "Course 1" course homepage
-    And I navigate to "Reports > Logs" in current page administration
-    And I click on "Get these logs" "button"
-    Then I should see "Teacher 2" in the "#report_log_r2_c1" "css_element"
-    And I should see "Added a question" in the "#report_log_r2_c5" "css_element"
-    And I should see "Teacher 2" in the "#report_log_r5_c1" "css_element"
-    And I should see "Added a question" in the "#report_log_r5_c5" "css_element"
+    When I navigate to "Reports" in current page administration
+    And I click on "Logs" "link"
+    And I set the field "menumodid" to "Test hotquestion name"
+    And I press "Get these logs"
+    Then I should see "Teacher 2" in the "#report_log_r1_c1" "css_element"
+    And I should see "Added a question" in the "#report_log_r1_c5" "css_element"
+    And I should see "Teacher 2" in the "#report_log_r4_c1" "css_element"
+    And I should see "Added a question" in the "#report_log_r4_c5" "css_element"
     Then I log out
 	#Student 1 posts an entry
     Given I log in as "student1"
@@ -116,14 +123,14 @@ Feature: Users can post anonymous or named entries to hotquestion
     # Teacher 1 verifies posts are logged for student.
     Given I log in as "teacher1"
     When I am on "Course 1" course homepage
-    And I follow "Test hotquestion name"
-    And I am on "Course 1" course homepage
-    And I navigate to "Reports > Logs" in current page administration
-    And I click on "Get these logs" "button"
-    Then I should see "Teacher 1" in the "#report_log_r1_c1" "css_element"
-    And I should see "Course module viewed" in the "#report_log_r1_c5" "css_element"
-    Then I should see "Student 1" in the "#report_log_r4_c1" "css_element"
+    And I navigate to "Reports" in current page administration
+    And I click on "Logs" "link"
+    And I set the field "menumodid" to "Test hotquestion name"
+    And I press "Get these logs"
+    Then I should see "Teacher 1" in the "#report_log_r14_c1" "css_element"
+    And I should see "Course module viewed" in the "#report_log_r14_c5" "css_element"
+    Then I should see "Student 1" in the "#report_log_r1_c1" "css_element"
+    And I should see "Added a question" in the "#report_log_r1_c5" "css_element"
+    And I should see "Student 1" in the "#report_log_r4_c1" "css_element"
     And I should see "Added a question" in the "#report_log_r4_c5" "css_element"
-    And I should see "Student 1" in the "#report_log_r7_c1" "css_element"
-    And I should see "Added a question" in the "#report_log_r7_c5" "css_element"
     Then I log out

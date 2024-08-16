@@ -18,29 +18,32 @@ Feature: Add HotQuestion activity
       | student1 | C1 | student |
     And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
-    And the following "activity" exists:
-      | activity    | hotquestion                                  |
-      | course      | C1                                           |
-      | name        | Test Hot Question name                       |
-      | intro       | Question                                     |
-      | section     | 1                                            |
-    And I log out
-    When I log in as "student1"
-    And I am on "Course 1" course homepage
-    And I follow "Test Hot Question name"
+    And I add a hotquestion activity to course "Course 1" section "1"
     And I set the following fields to these values:
-      | Submit your question here | First question |
+      | Activity Name      | Test Hot Question name        |
+      | Description        | Test Hot Question Description |
+      | cmidnumber         | TestHotQuestion               |
+      | viewaftertimeclose | 0                             |
+    And I press "Save and return to course"
+    And I log out
+    And I am on the "Test Hot Question name" "mod_hotquestion > View" page logged in as "student1"
+    And I set the following fields to these values:
+      | Submit your question here: | First question |
     And I press "Click to post"
     And I set the following fields to these values:
-      | Submit your question here | Second question |
+      | Submit your question here: | Second question |
     And I set the field "Display as anonymous" to "1"
     And I press "Click to post"
     And I log out
-    # Admin User verifies his posts are logged.
-    Then I log in as "admin"
+    # Teacher 1 verifies the posts of Student 1 are logged.
+    And I log in as "teacher1"
     And I am on "Course 1" course homepage
-    And I navigate to "Reports > Logs" in current page administration
-    And I click on "Get these logs" "button"
-    Then I should see "Student 1" in the "#report_log_r2_c1 a" "css_element"
-    And I should see "Added a question" in the "#report_log_r2_c5 a" "css_element"
+    When I navigate to "Reports" in current page administration
+    And I click on "Logs" "link"
+    And I set the field "menumodid" to "Test Hot Question name"
+    And I press "Get these logs"
+    Then I should see "Student 1" in the "#report_log_r1_c1" "css_element"
+    And I should see "Added a question" in the "#report_log_r1_c5" "css_element"
+    And I should see "Student 1" in the "#report_log_r4_c1" "css_element"
+    And I should see "Added a question" in the "#report_log_r4_c5" "css_element"
     Then I log out

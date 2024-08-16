@@ -609,7 +609,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      * @param bool $showrating
      * @return string
      */
-    public function current_user_rating(bool $showrating) : string {
+    public function current_user_rating(bool $showrating): string {
         global $USER;
 
         $output = '';

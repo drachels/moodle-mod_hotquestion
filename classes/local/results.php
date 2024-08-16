@@ -354,8 +354,8 @@ class results {
      * @param stdClass $entry Entry object.
      */
     public static function hotquestion_get_editor_and_attachment_options($course, $context, $entry) {
-        $maxfiles = 99; // TODO: add some setting.
-        $maxbytes = $course->maxbytes; // TODO: add some setting.
+        $maxfiles = 99;
+        $maxbytes = $course->maxbytes;
 
         $editoroptions = [
             'trusttext' => true,

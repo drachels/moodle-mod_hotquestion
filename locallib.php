@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
  * Internal library of functions for module hotquestion.
  *
@@ -828,7 +827,7 @@ class mod_hotquestion {
      * @param int $userid The single user to calculate the rating for.
      * @return float $rating number
      */
-    public function calculate_user_ratings($userid = null) : float {
+    public function calculate_user_ratings($userid = null): float {
         global $DB, $USER;
 
         if (!$userid) {
@@ -876,7 +875,7 @@ class mod_hotquestion {
      * @param int $questionid The question id.
      * @return array Array of int userids or empty if none.
      */
-    public function get_question_voters(int $questionid) : array {
+    public function get_question_voters(int $questionid): array {
         global $DB;
 
         $voters = $DB->get_records_menu('hotquestion_votes', ['question' => $questionid], '', 'id, voter');
@@ -945,6 +944,28 @@ class mod_hotquestion {
      * @return void
      */
     public function update_completion_state($user = null) {
+        $completion = new completion_info($this->course);
+        if (!$completion->is_enabled($this->cm)) {
+            return;
+        }
+        $completion->set_module_viewed($this->cm);
+
+        // 20240706 Added to update completion state after a user adds heat or teacher adds to a students priority/grade.
+        $cm = $this->cm;
+        $ci = new completion_info($this->course);
+        if ($cm->completion == COMPLETION_TRACKING_AUTOMATIC) {
+            $ci->update_state($cm, COMPLETION_UNKNOWN, null);
+        }
+    }
+
+    /**
+     * Finds all hotquestion notifications that have yet to be mailed out, and mails them.
+     *
+     * Cron function to be run periodically according to the moodle cron.
+     *
+     * @return bool
+     */
+    public function cron() {
         $completion = new completion_info($this->course);
         if (!$completion->is_enabled($this->cm)) {
             return;

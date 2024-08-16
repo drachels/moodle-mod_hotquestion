@@ -98,6 +98,12 @@ $event->trigger();
 $completion = new completion_info($course);
 $completion->set_module_viewed($cm);
 
+// 20240701 Added to update completion state after a user posts a question. Does not work for adds heat.
+$ci = new completion_info($course);
+if ($cm->completion == COMPLETION_TRACKING_AUTOMATIC) {
+    $ci->update_state($cm, COMPLETION_UNKNOWN, null);
+}
+
 // Set page.
 if (!$ajax) {
     $PAGE->set_url('/mod/hotquestion/view.php', ['id' => $hq->cm->id]);
@@ -293,55 +299,53 @@ if (!$ajax) {
     }
 
     // 20230522 Added a single row table to make both group and viewunapproved preference drop down menus work.
-    echo '<table><tr><td>';
-
+    echo '<table style="width:100%"><tr><td style="width:25%>';
     // Print group information (A drop down box will be displayed if the user
     // is a member of more than one group, or has access to all groups).
     echo groups_print_activity_menu($cm, $CFG->wwwroot.'/mod/hotquestion/view.php?id='.$cm->id);
-
     echo '</td>';
 
-    // 20230519 Added for preference selector.
-    echo '<td><form method="post">';
-
-    // Add a selector for unapproved question visibility preference.
-    $listoptions = [
-        get_string('unapprovedquestionnotset', 'hotquestion'),
-        get_string('unapprovedquestionsee', 'hotquestion'),
-        get_string('unapprovedquestionhide', 'hotquestion'),
-    ];
-    $htmlout = '';
-    $htmlout .= '   '.get_string('unapprovedquestionvisibility', 'hotquestion')
+    // 20240209 I approval is not required, do not show the visibility preference slector.
+    if ($hotquestion->approval == 1) {
+        // 20230519 Added for preference selector.
+        echo '<td style="width:50%"><form method="post">';
+        // Add a selector for unapproved question visibility preference.
+        $listoptions = [
+            get_string('unapprovedquestionnotset', 'hotquestion'),
+            get_string('unapprovedquestionsee', 'hotquestion'),
+            get_string('unapprovedquestionhide', 'hotquestion'),
+        ];
+        $htmlout = '';
+        $htmlout .= '&nbsp; &nbsp; &nbsp;'.get_string('unapprovedquestionvisibility', 'hotquestion')
                      .' <select onchange="this.form.submit()" id="pref_visibility" class="custom-select" name="vispreference">';
-    // Get the ID and name of each preference in the DB.
-    foreach ($listoptions as $akey => $aval) {
-        // The first if is executed ONLY when the drop down menu is clicked to change the preference.
-        if ($akey == $vispreference) {
-            // This part of the if is reached when going to setup with an
-            // preference already selected and it is the one already in use.
-            $htmlout .= '<option value="'.$akey.'" selected="true">'.$aval.'</option>';
-        } else {
-            // This part of the if is reached the most and its when a preference option
-            // is not the one currently selected in the dropdown list.
-            $htmlout .= '<option value="'.$akey.'">'.$aval.'</option>';
+        // Get the ID and name of each preference in the DB.
+        foreach ($listoptions as $akey => $aval) {
+            // The first if is executed ONLY when the drop down menu is clicked to change the preference.
+            if ($akey == $vispreference) {
+                // This part of the if is reached when going to setup with an
+                // preference already selected and it is the one already in use.
+                $htmlout .= '<option value="'.$akey.'" selected="true">'.$aval.'</option>';
+            } else {
+                // This part of the if is reached the most and its when a preference option
+                // is not the one currently selected in the dropdown list.
+                $htmlout .= '<option value="'.$akey.'">'.$aval.'</option>';
+            }
         }
+        set_user_preference('hotquestion_seeunapproved'.$hotquestion->id, $vispreference);
+        // 20240209 Added visibility preference check here. Might want to try it at line 306 and save some work.
+        echo $htmlout;
+        // 20230522 Limit the form to this one row/cell of the table.
+        echo '</form></td>';
+    } else {
+        echo '<td>&nbsp; &nbsp; &nbsp;</td>';
     }
-    set_user_preference('hotquestion_seeunapproved'.$hotquestion->id, $vispreference);
-    echo $htmlout;
-
-    // 20230522 Limit the form to this one row/cell of the table.
-    echo '</form></td>';
-
     // 20230519 This creates the URL link button for all HotQuestions in this course.
-    echo '<td>';
     $url2 = '<a href="'.$CFG->wwwroot.'/mod/hotquestion/index.php?id='.$course->id
         .'"class="btn btn-link">'
         .get_string('viewallhotquestions', 'hotquestion', $hotquestion->name)
         .'</a>';
-    echo '<span style="float: inline-end">'.$url2.'</span><br>';
-
-    echo '</td></tr></table>';
-
+    echo '<td style="width:25%; text-align:right">'.$url2.'</td>';
+    echo '</tr></table>';
     // Print the textarea box for typing submissions in.
     if ((has_capability('mod/hotquestion:manage', $context)
         || has_capability('mod/hotquestion:rate', $context))
