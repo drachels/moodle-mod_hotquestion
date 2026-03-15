@@ -561,7 +561,7 @@ class cron_task extends \core\task\scheduled_task {
         $sql = "SELECT hqq.*, hq.course, hq.name
                   FROM {hotquestion_questions} hqq
                   JOIN {hotquestion} hq ON hqq.hotquestion = hq.id
-                  JOIN (hotquestion_grades) hqg on hq.id = hqg.hotquestion
+                                    JOIN {hotquestion_grades} hqg ON hq.id = hqg.hotquestion
                  WHERE hqq.mailed = 0
                    AND hqg.timemodified < ?
                    AND hqg.timemodified > 0
