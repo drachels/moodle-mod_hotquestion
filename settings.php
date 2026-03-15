@@ -171,4 +171,12 @@ if ($ADMIN->fulltree) {
         get_string('cnfallowcomments', 'hotquestion'),
         0
     ));
+
+    // 20260102 Default allow notification setting.
+    $settings->add(new admin_setting_configcheckbox(
+        'mod_hotquestion/allownotifications',
+        get_string('allownotifications', 'hotquestion'),
+        get_string('canallownotifications', 'hotquestion'),
+        0
+    ));
 }

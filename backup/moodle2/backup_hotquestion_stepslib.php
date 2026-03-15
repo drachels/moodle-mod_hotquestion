@@ -89,6 +89,7 @@ class backup_hotquestion_activity_structure_step extends backup_activity_structu
                 'completionpost',
                 'completionvote',
                 'completionpass',
+                'notifications',
             ]
         );
 
@@ -119,6 +120,7 @@ class backup_hotquestion_activity_structure_step extends backup_activity_structu
                 'anonymous',
                 'approved',
                 'tpriority',
+                'mailed',
             ]
         );
 

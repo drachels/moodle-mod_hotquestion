@@ -259,12 +259,10 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                 if ($teacherpriorityvisibility) {
                     // Priority column is visible, so show the label.
                     // 20210924 Changed to format_text prioritylabel column setting.
-                    $table->head[] .= format_text(
-                        $this->hotquestion->instance->teacherprioritylabel,
-                        $format = FORMAT_MOODLE,
-                        $options = null,
-                        $courseiddonotuse = null
-                    );
+                    $table->head[] .= format_text($this->hotquestion->instance->teacherprioritylabel,
+                                      $format = FORMAT_MOODLE,
+                                      $options = null,
+                                      $courseiddonotuse = null);
                 } else {
                     // Priority column is not visible, so replace label with a space.
                     $table->head[] .= ' ';

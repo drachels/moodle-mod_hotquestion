@@ -34,6 +34,8 @@ $string['allowauthorinfohide_descr'] = 'If enabled, the name of the questions au
 $string['allowauthorinfohide_help'] = 'If enabled, the name of the questions author can be visible to teachers but hidden from students.';
 $string['allowcomments'] = 'Allow comments on entries';
 $string['allowcomments_help'] = 'If enabled, all participants with permission to create comments will be able to add comments to hot question entries.';
+$string['allownotifications'] = 'Allow notifications when an entry is added';
+$string['allownotifications_help'] = 'If enabled, a new entry will cause a notification to be to the teacher.';
 $string['alwaysshowdescription'] = 'Always show description';
 $string['alwaysshowdescription_help'] = 'If disabled, the Hot Question Description will not be visible to students.';
 $string['anonymous'] = 'Anonymous';
@@ -45,6 +47,7 @@ $string['authorinfo'] = 'Posted by {$a->user} at {$a->time}';
 $string['authorinfohide'] = 'Posted {$a->time}';
 $string['calendarend'] = '{$a} closes';
 $string['calendarstart'] = '{$a} opens';
+$string['canallownotifications'] = 'Define if a hot question will accept notifications on entries by default';
 $string['cnfallowcomments'] = 'Define if a hot question will accept comments on entries by default';
 $string['completiondetail:pass'] = 'Passing grade: {$a}';
 $string['completiondetail:post'] = 'Post questions: {$a}';
@@ -157,21 +160,8 @@ $string['inputteacherprioritylabel_descr'] = 'Change the Priority column name to
 $string['inputteacherprioritylabel_help'] = 'Change the Priority column name to better fit the use of this activity.';
 $string['invalidquestion'] = 'Empty questions are ignored.';
 $string['modulename'] = 'Hot Question';
-$string['modulename_help'] = '###### Key features
-- Allows participants to submit questions or responses to prompts in real time or asynchronously
-- Displays questions in an ordered list, with newest first and hottest (most voted) rising to the top
-- Voting system using “Heat” (Thumbs Up) to prioritize popular questions
-- Teachers can override votes by setting post priority and control visibility with approval settings
-- Accessible from any device and scalable for large classes
-
-###### Ways to use it
-- Gather and prioritize questions during lectures, revision sessions, or recorded content reviews
-- Identify the most relevant topics for discussion in large classes
-- Use as a suggestion box or feedback tool for course improvement
-- Facilitate quick polls or brainstorming activities
-- Support collaborative analysis of videos, readings, or topical issues';
+$string['modulename_help'] = 'A Hot Question activity enables students to post and vote on posts, in response to questions asked by course teachers.';
 $string['modulename_link'] = 'mod/hotquestion/view';
-$string['modulename_summary'] = 'Allows users to post questions or ideas in real time or asynchronously and vote on entries to highlight popular ones';
 $string['modulenameplural'] = 'Hot Questions';
 $string['newround'] = 'Open a new round';
 $string['newroundconfirm'] = 'Confirm you want to start a new round? (Existing questions and votes will be archived and can not be added to!)';

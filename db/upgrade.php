@@ -637,5 +637,29 @@ function xmldb_hotquestion_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2023012600, 'hotquestion');
     }
 
+    if ($oldversion < 2026010200) {
+
+        // Define field notifications to be added to hotquestion.
+        $table = new xmldb_table('hotquestion');
+        $field = new xmldb_field('notifications', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '1', 'completionpass');
+
+        // Conditionally launch add field notifications.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field mailed to be added to hotquestion_questions.
+        $table = new xmldb_table('hotquestion_questions');
+        $field = new xmldb_field('mailed', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'tpriority');
+
+        // Conditionally launch add field mailed.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Hotquestion savepoint reached.
+        upgrade_mod_savepoint(true, 2026010200, 'hotquestion');
+    }
+
     return true;
 }

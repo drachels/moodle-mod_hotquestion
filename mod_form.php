@@ -205,6 +205,13 @@ class mod_hotquestion_mod_form extends moodleform_mod {
             $mform->setDefault('comments', $hotquestionconfig->allowcomments);
         }
 
+        // 20260102 Allow notifications.
+        if ($hotquestionconfig->allownotifications) {
+            $mform->addElement('selectyesno', 'notifications', get_string('allownotifications', 'hotquestion'));
+            $mform->addHelpButton('notifications', 'allownotifications', 'hotquestion');
+            $mform->setDefault('notifications', $hotquestionconfig->allownotifications);
+        }
+
         // Availability.
         $mform->addElement('header', 'availabilityhdr', get_string('availability'));
 
