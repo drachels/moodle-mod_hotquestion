@@ -468,6 +468,14 @@ class viewgrades extends table_sql {
         global $OUTPUT;
         groups_print_activity_menu($this->hotquestion->cm, $this->baseurl->out());
 
+        $group = groups_get_activity_group($this->hotquestion->cm, true);
+        $returnurl = new moodle_url('/mod/hotquestion/view.php', ['id' => $this->hotquestion->cm->id]);
+        if ($group > 0) {
+            $returnurl->param('group', $group);
+        }
+        $hotquestionname = format_string($this->hotquestion->instance->name);
+        echo $OUTPUT->single_button($returnurl, get_string('returnto', 'hotquestion', $hotquestionname));
+
         $grandtotal = $this->get_total_users_count();
         if (!$grandtotal) {
             echo $OUTPUT->box(get_string('nothingtodisplay'), 'generalbox nothingtodisplay');

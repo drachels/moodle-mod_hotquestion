@@ -15,23 +15,41 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the version of hotquestion.
- *
- * This code fragment is called by moodle_needs_upgrading() and
- * /admin/index.php
+ * Search area for mod_hotquestion activities.
  *
  * @package   mod_hotquestion
- * @copyright 2011 Sun Zhigang
- * @copyright 2016 onwards AL Rachels drachels@drachels.com
+ * @copyright 2026 AL Rachels <drachels@drachels.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_hotquestion\search;
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2026032400; // The current module version (Date: YYYYMMDDXX).
-$plugin->requires = 2021122100; // Requires Moodle 3.11 version.
-$plugin->cron = 60; // Period for cron to check this module (secs).
-$plugin->component = 'mod_hotquestion';
-$plugin->maturity = MATURITY_BETA;
-$plugin->release = "5.0.0 (Build: 2026032400)"; // User-friendly version number.
-$plugin->supported = [311, 501];
+/**
+ * Search area for mod_hotquestion activities.
+ *
+ * @package   mod_hotquestion
+ * @copyright 2026 AL Rachels <drachels@drachels.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class activity extends \core_search\base_activity {
+
+    /**
+     * Returns true if this area uses file indexing.
+     *
+     * @return bool
+     */
+    public function uses_file_indexing() {
+        return true;
+    }
+
+    /**
+     * Return the context info required to index files for this search area.
+     *
+     * @return array
+     */
+    public function get_search_fileareas() {
+        return ['intro'];
+    }
+}

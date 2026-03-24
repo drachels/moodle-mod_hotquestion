@@ -196,10 +196,11 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      * Return question list, which includes the content, the author, the time
      * and the heat. If $can_vote is true, will display an icon to vote with.
      *
-     * @param bool $allowvote whether current user has vote cap
+    * @param bool $allowvote whether current user has vote cap
+    * @param bool $showonlyown whether to restrict list to current user's entries
      * return table of questionlist
      */
-    public function questions($allowvote = true) {
+    public function questions($allowvote = true, $showonlyown = false) {
         global $DB, $CFG, $USER;
         $output = '';
         $formatoptions = new stdClass();
@@ -219,6 +220,9 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
         } else {
             $heatvisibility = $this->hotquestion->instance->heatvisibility;
         }
+
+        // 20260324 Ticket 497: hide heatlimit label suffix and vote icons when not in the current round.
+        $iscurrentround = ($this->hotquestion->get_nextround() === null);
 
         // Added for Remove capability.
         $id = required_param('id', PARAM_INT);
@@ -272,14 +276,15 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                 if ($heatvisibility) {
                     // 20210924 Changed to format_text heatlabel column setting.
                     // 20200526 Show heatlimit setting and how many heat/votes remain for current user.
+                    // 20260324 Only show heatlimit/remaining suffix in the current round.
                     $table->head[] .= format_text(
                         $this->hotquestion->instance->heatlabel,
                         $format = FORMAT_MOODLE,
                         $options = null,
                         $courseiddonotuse = null
                     )
-                                      . ' ' . $this->hotquestion->instance->heatlimit
-                                      . '/' . $temp;
+                                      . ($iscurrentround ? ' ' . $this->hotquestion->instance->heatlimit
+                                      . '/' . $temp : '');
                 } else {
                     // Heat column is not visible, so replace label with a space.
                     $table->head[] .= ' ';
@@ -329,14 +334,15 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                 if ($heatvisibility) {
                     // 20210924 Changed to format_text heatlabel column setting.
                     // Heat column is visible, so show the label.
+                    // 20260324 Only show heatlimit/remaining suffix in the current round.
                     $table->head[] .= format_text(
                         $this->hotquestion->instance->heatlabel,
                         $format = FORMAT_MOODLE,
                         $options = null,
                         $courseiddonotuse = null
                     )
-                                                  . ' ' . $this->hotquestion->instance->heatlimit
-                                                  . '/' . $temp;
+                                                  . ($iscurrentround ? ' ' . $this->hotquestion->instance->heatlimit
+                                                  . '/' . $temp : '');
                 } else {
                     // Heat column is not visible, so replace label with a space.
                     $table->head[] .= ' ';
@@ -370,6 +376,10 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
 
             // 20230519 Process all questions based on new seeunapproved question preference.
             foreach ($questions as $question) {
+                if ($showonlyown && ((int)$question->userid !== (int)$USER->id) ) {
+                    continue;
+                }
+
                 $line = [];
                 $formatoptions->para = false;
                 $content = format_text($question->content, FORMAT_MOODLE, $formatoptions);
@@ -484,7 +494,8 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                         }
 
                         // Print the vote cron case. 20200528 Added check for votes remaining.
-                        if ($allowvote && $this->hotquestion->can_vote_on($question) && ($remaining >= 0)) {
+                        // 20260324 Also suppress vote icons when viewing a past round.
+                        if ($allowvote && $iscurrentround && $this->hotquestion->can_vote_on($question) && ($remaining >= 0)) {
                             if (!$this->hotquestion->has_voted($question->id) && ($remaining >= 1)) {
                                 $url = "view.php?id=" . $this->hotquestion->cm->id . "&action=vote&q=" . $question->id;
                                 $heat .= html_writer::link(

@@ -1,11 +1,188 @@
 This files describes changes in the Hot Question code.
 
-=== 5.0.0 === Items that hopefully will be in a future release.
-20251020 HotQuestion_1384 - HotQuestion - feature request for notifications.
-20260101 HotQuestion_1388 - HotQuestion - Issue#112 Hotquestion should support course overview.
-20260101 HotQuestion_1389 - HotQuestion - Issue#114 Fix button class for Moodle 5.0.
-20260104 HotQuestion_1390 - HotQuestion - It appears that thumbs up/down for Priority is broken.
-    Found and fixed to bits of missing code in the renderer.php file. See ticket for details.
+=== Deferred to a later version. ===
+
+20210221 HotQuestion_640 - New capability request - sort order for questions.
+    20260322 Verified not fixed: question ordering remains hardcoded in
+        locallib.php get_questions() (ORDER BY approved, tpriority, votecount,
+        time) with no mod_form/settings option or capability-driven alternate
+        sort mode.
+20210325 HotQuestion_691 - Need to add to the documentation on Moodle.
+    20260322 Verified not fixed: tracker status remains open and no repository
+        changes indicate completion of the requested Moodle.org documentation
+        update.
+20210823 HotQuestion_750 - It would be nice if users could record questions.
+    20260322 Verified not fixed: no audio/video recording functionality exists
+        in the plugin; feature request remains unimplemented.
+20220421 HotQuestion_844 - The Moodle Mobile app is not supported.
+    20260322 Verified not fixed: no mobile app support classes or REST endpoint
+        integration exists in the plugin; tracker status remains in-progress.
+20220630 HotQuestion_880 - Need to work on lib.php function
+    hotquestion_user_outline.
+    20260322 Verified not fixed: hotquestion_user_outline() in lib.php
+        (lines 232-236) returns empty stdClass with no data; function stub
+        exists but contains no implementation to populate time or info fields.
+20220705 HotQuestion_884 - Feature request issue #59 - implement word limit.
+    20260322 Verified not fixed: no word limit feature exists in the plugin;
+        no settings or backend code for limiting question submission length
+        has been implemented.
+20220705 HotQuestion_886 - Feature request #61 - Option for plain text
+    editor or HTML editor.
+    20260322 Verified not fixed: mod_form.php (lines 431-445) contains only
+        a single 'editor' element with no option to select between plain text
+        and HTML editor; no plaintext toggle setting exists in the plugin.
+20230308 HotQuestion_1018 - Need to see about adding tags to question entries.
+    20260322 Verified not fixed: no tag support exists anywhere in the plugin;
+        no FEATURE_TAGS, core_tag, tag_area, or tag_set references found; the
+        in-progress resolution notes blocking difficulty obtaining $newentry->id
+        at insertion time in results.php.
+20230523 HotQuestion_1047 - Need to investigate creating a Grade Me plugin
+    for Hot Question for teacher priority is required.
+    20260322 Verified not fixed: no Grade Me integration exists; no grademe/
+        grade_me references or plugin callbacks were found, and no logic
+        exposes a list of entries requiring teacher-priority uptick handling.
+    20260324 Deferred: moving out of 5.0.0 pending because this depends on
+        external Grade Me plugin integration and current demand does not justify
+        implementation work right now.
+20230523 HotQuestion_1048 - Need to investigate a Grade Me plugin for
+    students required entries and heat.
+    20260322 Verified not fixed: student required-entries/heat logic exists
+        (completionpost/completionvote and heat handling), but no Grade Me
+        integration exists; no grademe/grade_me references or plugin callbacks
+        were found to expose pending student requirements to a Grade Me block.
+    20260324 Deferred: moving out of 5.0.0 pending because this depends on
+        external Grade Me plugin integration and current demand does not justify
+        implementation work right now.
+20251020 HotQuestion_1384 - feature request for notifications.
+    20260322 Verified not fixed: classes/task/cron_task.php queues
+        \mod_hotquestion\task\send_user_notifications and
+        \mod_hotquestion\task\send_user_digests, but the task file is misnamed
+        send_user_nofifications.php and there is no send_user_digests class file,
+        so both classes currently fail autoload (class_exists = no).
+
+=== 5.0.0 === Pending.
+20200513 HotQuestion_404bt - suspect $string['questions'] = 'Questions';
+    is deprecated.
+    20260322 Verified fixed: active heading usage is now driven by
+        questionlabel/inputquestionlabel settings in settings.php, mod_form.php,
+        and renderer.php; no current get_string('questions', 'hotquestion')
+        runtime usage was found.
+20200606 HotQuestion_492bt - Need to verify backup includes all information.
+    20260322 Verified fixed: backup/restore now includes question-comments data,
+        and rounds are sourced outside the userinfo gate. CLI backup/restore
+        test passed for cmid 6181 (restored as hotquestion id 37) with matched
+        data counts: questions=6, votes=4, rounds=1, comments=3.
+20200607 HotQuestion_490bt - change admin download to use config settings for
+    column headings.
+    20260322 Verified fixed: download_questions() in locallib.php builds column
+        headers using $q->teacherprioritylabel, $q->heatlabel, $q->approvallabel,
+        and $q->questionlabel joined from the hotquestion table, applying
+        per-instance config labels for both admin and teacher downloads.
+20200612 HotQuestion_497bt - Need to be able to hide the heatlimit and votes
+    when not in current round.
+    20260322 Verified not fixed: renderer.php heat column header visibility is
+        controlled only by the heatlimit/heatvisibility instance settings; no
+        check exists for whether the viewed round is the current round vs. a
+        past round.
+    20260324 Fixed: renderer.php questions() now computes $iscurrentround using
+        get_nextround() === null; heatlimit/remaining suffix is suppressed from
+        the heat column header and vote icons are hidden for both teachers and
+        students when viewing any past round.
+20200818 HotQuestion_600bt - Search not implemented.
+    20260322 Verified not fixed: no classes/search/ directory exists and no
+        global search area class or search callback in lib.php is implemented.
+    20260324 Fixed: added classes/search/activity.php extending
+        core_search\base_activity with intro file-area indexing and added
+        language string search:activity. HotQuestion PHPUnit regression run
+        passed: 5 tests, 28 assertions.
+20210508 HotQuestion_716bt - Styles.css file is incomplete.
+    20260322 Verified fixed: added the standard Moodle GPL/file header boilerplate to styles.css.
+20220630 HotQuestion_879bt - When using grades, teacher priority probably
+    should NOT change the question sort order.
+    20260322 Verified fixed: locallib.php get_questions() now conditionally
+        excludes tpriority from ORDER BY when grading is enabled (grade <> 0),
+        while preserving legacy tpriority sorting when grading is disabled.
+        Covered by PHPUnit tests in tests/locallib_test.php.
+    20260324 Re-verified by PHPUnit on moodledev: vendor/bin/phpunit
+        --configuration phpunit.xml public/mod/hotquestion/tests/locallib_test.php
+        passed (2 tests, 6 assertions).
+20220705 HotQuestion_885r - Feature request #60 - Would it be posible for
+    admin to edit a submission.
+    Resolved (declined): GDPR/ownership concerns prevent implementation; comments
+    feature provides alternative for clarification workflow.
+20220711 HotQuestion_889bt - Need to rework mod_form so the Grade Type default
+    is None.
+    20260322 Verified not fixed: mod_form.php calls standard_grading_coursemodule_elements()
+        with no grade type override; settings.php contains no grade default setting;
+        Grade Type still defaults to the Moodle core default (Points) rather than None.
+    20260324 Fixed: mod_form.php now sets default grade type to none after
+        adding standard grading elements. Manual form check confirms new
+        activities default Grade Type to None.
+20220719 HotQuestion_896bt - Need a return button on the viewgrades.php page.
+    20260322 Verified not fixed: no return button exists in grades.php or
+        classes/output/viewgrades.php; only an unimplemented comment remains
+        in viewgrades.php download_buttons() at line 613.
+    20260324 Fixed: viewgrades display now shows a Return to {$a} button
+        linking back to view.php (preserving current group parameter when
+        present) and keeps the group selector first.
+        HotQuestion PHPUnit regression run passed: 5 tests, 28 assertions.
+20230308 HotQuestion_1017bt - Need to add comments reset to function
+    hotquestion_reset_userdata($data).
+    20260322 Verified not fixed: reset_instance() in lib.php (line 175) deletes
+        votes, questions, rounds, and grades only; no comment deletion block exists
+        in reset_instance() or hotquestion_reset_userdata().
+    20260324 Fixed: reset_instance() now deletes mod_hotquestion comments in
+        commentarea hotquestion_questions before removing questions, and
+        PHPUnit coverage in tests/locallib_test.php confirms
+        hotquestion_reset_userdata() removes question comments during course
+        reset (3 tests, 11 assertions).
+20230406 HotQuestion_1030bt - locallib.php contains SQL queries that are
+    incompatible with SQLSRV driver #80.
+    20260322 Verified not fixed: get_questions() in locallib.php (lines 394-406)
+        selects q.format but omits it from GROUP BY; query fails on SQLSRV and
+        strict SQL_MODE databases. Tracker closed wontfix because the original
+        reporter was using an outdated unsupported version, but the underlying
+        SQL issue remains in current code.
+    20260324 Fixed: get_questions() in locallib.php now includes q.format in
+        GROUP BY, matching the selected columns and restoring compatibility with
+        SQLSRV and strict SQL_MODE databases.
+20210321 HotQuestion_535 - mode to require an entry before other entries are
+    visible.
+    20260324 Fixed: added per-activity minimum-posts setting
+        (minquestionsview) in settings/mod_form/db and enforced it in view.php
+        and renderer.php so students below the threshold can only see their own
+        entries until they have posted enough questions in the current round.
+20210311 HotQuestion_673 - Create x entries before can see other entries.
+    20260324 Fixed together with HotQuestion_535 using the same
+        minimum-entries-before-viewing implementation.
+20230521 HotQuestion_1046 - Need to see about implementing a maximum number
+    of questions a user can add.
+    20260324 Fixed: added per-activity maximum-posts setting
+        (maxquestionsperuser) in settings/mod_form/db and enforced it in
+        view.php submission flow for the current round, including user notice
+        when the posting limit is reached.
+20240826 HotQuestion_1303bt - Need to modify reset to make questions and votes
+    separate and include other capability reset.
+    20260322 Verified not fixed: course reset still provides only a single
+        reset_hotquestion checkbox; reset_instance() deletes votes, questions,
+        rounds, and grades together with no separate reset options for
+        questions vs votes and no additional capability-based reset controls.
+    20260324 Fixed: course reset now provides separate controls for deleting
+        questions (with associated votes/comments) and deleting votes only.
+        reset_instance() now supports option-based reset paths, and votes-only
+        reset rebuilds grade data from remaining questions.
+20260101 HotQuestion_1388bt - Issue#112 Hotquestion should support course overview.
+    20260322 Verified fixed: classes/courseformat/overview.php now provides
+        activity overview actions via get_actions_overview(), linking to view.php
+        with the current course module id.
+20260101 HotQuestion_1389bt - Issue#114 Fix button class for Moodle 5.0.
+    20260322 Verified fixed: classes/courseformat/overview.php uses
+        button::BODY_OUTLINE->classes() when available and falls back to
+        btn btn-outline-secondary for compatibility.
+20260104 HotQuestion_1390bt - It appears that thumbs up/down for Priority is broken.
+    20260322 Verified fixed: renderer.php teacher-priority up/down links now include the
+        missing &action=tpriority parameter (around lines 455 and 465), restoring
+        correct thumbs up/down behavior.
 
 
 === 4.2.5 === 2025060200
@@ -13,7 +190,6 @@ HotQuestion_1378 - HotQuestion - Adopting for Moodle Plugin CI. #108. Did a merg
     to make the code changes and created new release.
 
 === 4.2.4 === 2025041500
-20220421 HotQuestion_844 - The Moodle Mobile app is not supported.
 20220430 HotQuestion_853 - Sometimes when a user has no question submitted, they
     are getting a grade anyway. 
 20220706 HotQuestion_881 - When Whole Hot Question grading is NOT enabled, the
@@ -30,6 +206,11 @@ HotQuestion_1378 - HotQuestion - Adopting for Moodle Plugin CI. #108. Did a merg
     Modified code in renderer.php to set width of icons where need. See ticket for details.
 
 === 4.2.2 === 20240711
+20221118 HotQuestion_957v - Ran p2.php file and got error.
+    Verified fixed: export_hqvote_data_for_user() now exists in
+    classes/privacy/provider.php (line 376); the missing function causing
+    the p2.php error was resolved as part of the pull request #101 privacy
+    rewrite. See also tickets 964 and 1118.
 20221125 HotQuestion_964 - Need to rewrite the privacy.php file as it currently is not
     working. Pull request issue #101 has fixed the problem. User data export requests
     seem to be working correctly, now.
@@ -140,6 +321,9 @@ HotQuestion_1378 - HotQuestion - Adopting for Moodle Plugin CI. #108. Did a merg
 
 
 === 4.1.5 === 20230126 Only for M3.11 and above.
+20210221 HotQuestion_671 - Need to add rating capability. Resolved by
+    incremental grading/rating work (2022-2023), including rate capability
+    usage and viewgrades integration; tracker status set to resolved 20230124.
 20230119 HotQuestion_977 - Non-unique names for database fields #56. The fields assessed,
     assestimestart and assesstimefinish are required for ratings, but assessedtimefinish
     and assessedtimestart are not used at all, so I need to see about dropping them.
@@ -156,6 +340,8 @@ HotQuestion_1378 - HotQuestion - Adopting for Moodle Plugin CI. #108. Did a merg
     clicks on the heat vote icon are ignored. Clicks by anyone with manage capabilities
     can change and/or remove their votes, as I can see a case for teachers catching up
     with grading, after the activity has closed.
+20230127 HotQuestion_1000v - Undefined property grade #77. Pull request merged
+    and included in the v4.1.5 branch release. See also github issue #77.
 20200522 Hot Question_479 - Need to move locallib.php functions to .../classes/... I have
     slowly been doing this and have placed 12 into class files, so far. I am going to
     close this ticket, and start doing individual tickets for the rest of them.
@@ -256,6 +442,8 @@ HotQuestion_1378 - HotQuestion - Adopting for Moodle Plugin CI. #108. Did a merg
     the language string reference in hotquestion/classes/output/viewgrades.php
     down around line 166 from, get_string('grade'), over to, get_string('gradenoun'),
     and the debug error went away.
+20210516 HotQuestion_724 - String [grade,core] is deprecated. Duplicate of 848v;
+    fix published in v4.1.0.
 20220427 HotQuestion_849v - get_extra_user_fields() is deprecated. Changed the code
     as needed to fix the problem. See the ticket for details.
 20220427 HotQuestion_850v - user_picture::fields() is deprecated. Changed the code
@@ -395,6 +583,11 @@ HotQuestion_1378 - HotQuestion - Adopting for Moodle Plugin CI. #108. Did a merg
 
 
 === 4.0.1 === 2021100100 For Moodle 2.8 thru Moodle 3.11
+20210924 HotQuestion_753 - column headings need to be converted to get_string.
+    Implemented via instance-configurable labels (questionlabel, heatlabel,
+    teacherprioritylabel, removelabel, approvallabel) in renderer.php and
+    view.php, providing per-activity header customization instead of hardcoded
+    strings.
 20210516 HotQuestion_695v - Invalid get_string() identifier: 'hotquestion:rate'.
     Added the missing string.
 20210516 HotQuestion_723v - Invalid get_string() identifier: 'hotquestion:comment'.
@@ -418,6 +611,8 @@ HotQuestion_1378 - HotQuestion - Adopting for Moodle Plugin CI. #108. Did a merg
 20210215 HotQuestion_669, Need round indicator between the round nav icons. Completed
     development. Completed further testing and cleanup. Added string, xofn = " of ". Code
     in locallib.php and render.php.
+20210218 HotQuestion_536 - Need to show round count number. Duplicate of 669;
+    fix published in v3.9.2. See HotQuestion_669 above.
 
 === 3.9.1 ===
 20201217 HotQuestion_661, Github issue 45 feature request - hide student names.

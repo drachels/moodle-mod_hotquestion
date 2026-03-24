@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/hotquestion/db" VERSION="20260102" COMMENT="XMLDB file for Moodle mod/hotquestion"
+<XMLDB PATH="mod/hotquestion/db" VERSION="20260324" COMMENT="XMLDB file for Moodle mod/hotquestion"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -12,6 +12,8 @@
         <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="General introduction of the hotquestion activity"/>
         <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Format of the intro field (MOODLE, HTML, MARKDOWN...)"/>
         <FIELD NAME="submitdirections" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="Submit your question here" SEQUENCE="false" COMMENT="Change the default wording as desired."/>
+        <FIELD NAME="minquestionsview" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Minimum number of questions a user must post in current round before seeing other users questions. 0 disables this behavior."/>
+        <FIELD NAME="maxquestionsperuser" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Maximum number of questions a user can post in current round. 0 means unlimited."/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timeopen" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date HQ opens."/>

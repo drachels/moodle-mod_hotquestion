@@ -60,6 +60,12 @@ $entriesmanager = has_capability('mod/hotquestion:manageentries', $context);
 $canrate = has_capability('mod/hotquestion:rate', $context);
 $canask = has_capability('mod/hotquestion:ask', $context);
 $canview = has_capability('mod/hotquestion:view', $context);
+$ismanagerorrater = $entriesmanager || $canrate;
+
+$mform = null;
+$userroundpostcount = 0;
+$hideotherentries = false;
+$maxentriesreached = false;
 
 if (!$entriesmanager && !$canrate && !$canask && !$canview) {
     throw new moodle_exception(get_string('accessdenied', 'hotquestion'));
@@ -116,6 +122,21 @@ if (!$ajax) {
 
 require_capability('mod/hotquestion:view', $context);
 
+$minquestionsview = (int)($hq->instance->minquestionsview ?? 0);
+$maxquestionsperuser = (int)($hq->instance->maxquestionsperuser ?? 0);
+
+if ($canask) {
+    $userroundpostcount = $hq->get_user_question_count_in_current_round($USER->id);
+
+    if (!$ismanagerorrater && ($minquestionsview > 0) && ($userroundpostcount < $minquestionsview)) {
+        $hideotherentries = true;
+    }
+
+    if (!$ismanagerorrater && ($maxquestionsperuser > 0) && ($userroundpostcount >= $maxquestionsperuser)) {
+        $maxentriesreached = true;
+    }
+}
+
 // Get local renderer.
 $output = $PAGE->get_renderer('mod_hotquestion');
 $output->init($hq);
@@ -125,6 +146,12 @@ if ($canask) {
     $mform = new hotquestion_form(null, [$hq->instance->anonymouspost, $hq->cm]);
     // 20230520 Needed isset so changing unapproved question views do not cause an error.
     if (($fromform = $mform->get_data()) && (isset($fromform->submitbutton))) {
+        if ($maxentriesreached) {
+            redirect('view.php?id=' . $hq->cm->id, get_string('maxquestionsreached', 'hotquestion', (object)[
+                'max' => $maxquestionsperuser,
+            ]));
+        }
+
         // If there is a post, $fromform will contain text, format, id, and submitbutton.
         // 20210314 Prevent CSFR.
         confirm_sesskey();
@@ -174,6 +201,13 @@ if (!empty($action)) {
             break;
         case 'vote':
             if (has_capability('mod/hotquestion:vote', $context)) {
+                if ($hideotherentries) {
+                    redirect('view.php?id=' . $hq->cm->id, get_string('minentriesbeforeviewnotice', 'hotquestion', (object)[
+                        'required' => $minquestionsview,
+                        'current' => $userroundpostcount,
+                    ]));
+                }
+
                 // 20230122 Prevent voting when closed.
                 if (
                     (hqavailable::is_hotquestion_active($hq))
@@ -188,6 +222,13 @@ if (!empty($action)) {
             break;
         case 'removevote':
             if (has_capability('mod/hotquestion:vote', $context)) {
+                if ($hideotherentries) {
+                    redirect('view.php?id=' . $hq->cm->id, get_string('minentriesbeforeviewnotice', 'hotquestion', (object)[
+                        'required' => $minquestionsview,
+                        'current' => $userroundpostcount,
+                    ]));
+                }
+
                 // 20230122 Prevent vote remove when closed.
                 if (
                     (hqavailable::is_hotquestion_active($hq))
@@ -364,13 +405,22 @@ if (!$ajax) {
     echo '<td style="width:25%; text-align:right">' . $url2 . '</td>';
     echo '</tr></table>';
     // Print the textarea box for typing submissions in.
+    if ($maxentriesreached && !$ismanagerorrater) {
+        echo $OUTPUT->notification(get_string('maxquestionsreached', 'hotquestion', (object)[
+            'max' => $maxquestionsperuser,
+        ]), 'info');
+    }
+
     if (
         (has_capability('mod/hotquestion:manage', $context)
         || has_capability('mod/hotquestion:rate', $context))
         || (has_capability('mod/hotquestion:ask', $context)
-           && hqavailable::is_hotquestion_active($hq))
+           && hqavailable::is_hotquestion_active($hq)
+           && !$maxentriesreached)
     ) {
-        $mform->display();
+        if ($mform) {
+            $mform->display();
+        }
     }
 }
 
@@ -393,7 +443,14 @@ echo $output->toolbar(has_capability('mod/hotquestion:rate', $context));
 echo $output->container_end();
 
 // Print questions list from the current round, function questions is in renderer.php file.
-echo $output->questions(has_capability('mod/hotquestion:vote', $context));
+if ($hideotherentries) {
+    echo $OUTPUT->notification(get_string('minentriesbeforeviewnotice', 'hotquestion', (object)[
+        'required' => $minquestionsview,
+        'current' => $userroundpostcount,
+    ]), 'info');
+}
+
+echo $output->questions(has_capability('mod/hotquestion:vote', $context), $hideotherentries);
 echo $output->container_end();
 
 

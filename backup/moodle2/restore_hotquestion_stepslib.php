@@ -47,11 +47,12 @@ class restore_hotquestion_activity_structure_step extends restore_activity_struc
         $userinfo = $this->get_setting_value('userinfo');
 
         $paths[] = new restore_path_element('hotquestion', '/activity/hotquestion');
+        $paths[] = new restore_path_element('hotquestion_round', '/activity/hotquestion/rounds/round');
         if ($userinfo) {
             $paths[] = new restore_path_element('hotquestion_grade', '/activity/hotquestion/grades/grade');
             $paths[] = new restore_path_element('hotquestion_question', '/activity/hotquestion/questions/question');
-            $paths[] = new restore_path_element('hotquestion_vote', '/activity/hotquestion/votes/vote');
-            $paths[] = new restore_path_element('hotquestion_round', '/activity/hotquestion/rounds/round');
+            $paths[] = new restore_path_element('hotquestion_comment', '/activity/hotquestion/questions/question/comments/comment');
+            $paths[] = new restore_path_element('hotquestion_vote', '/activity/hotquestion/questions/question/votes/vote');
         }
 
         // Return the paths wrapped into standard activity structure.
@@ -130,6 +131,36 @@ class restore_hotquestion_activity_structure_step extends restore_activity_struc
         $data->hotquestion = $this->get_new_parentid('hotquestion');
 
         $newitemid = $DB->insert_record('hotquestion_rounds', $data);
+    }
+
+    /**
+     * Process a comment restore.
+     *
+     * @param object $data The data in object form.
+     * @return void
+     */
+    protected function process_hotquestion_comment($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $questionid = $this->get_new_parentid('hotquestion_question');
+        $userid = $this->get_mappingid('user', $data->userid);
+        if (!$userid) {
+            return;
+        }
+
+        $contextid = context_module::instance($this->task->get_moduleid())->id;
+        $record = (object)[
+            'contextid' => $contextid,
+            'component' => 'mod_hotquestion',
+            'commentarea' => 'hotquestion_questions',
+            'itemid' => $questionid,
+            'content' => $data->content,
+            'format' => $data->format,
+            'userid' => $userid,
+            'timecreated' => $this->apply_date_offset($data->timecreated),
+        ];
+        $DB->insert_record('comments', $record);
     }
 
     /**

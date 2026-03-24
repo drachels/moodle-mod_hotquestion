@@ -167,36 +167,104 @@ function hotquestion_delete_instance($id) {
 }
 
 /**
- * Clear all questions and votes.
+ * Rebuild Hot Question grades from the current set of questions.
+ *
+ * Used when votes are reset independently from questions so grade data is
+ * recalculated from the remaining question records.
  *
  * @param int $hotquestionid
- * @return boolean Success/Failure
+ * @return bool Success/Failure
  */
-function reset_instance($hotquestionid) {
+function hotquestion_rebuild_grades_from_questions($hotquestionid) {
+    global $CFG, $DB;
+
+    $hotquestion = $DB->get_record('hotquestion', ['id' => $hotquestionid], '*', MUST_EXIST);
+    if (empty($hotquestion->grade)) {
+        return true;
+    }
+
+    // Start from a clean grade state, then repopulate from remaining question data.
+    $DB->delete_records('hotquestion_grades', ['hotquestion' => $hotquestionid]);
+    hotquestion_grade_item_update($hotquestion, 'reset');
+
+    $authors = $DB->get_fieldset_select('hotquestion_questions', 'DISTINCT userid', 'hotquestion = ? AND userid > 0', [$hotquestionid]);
+    if (empty($authors)) {
+        return true;
+    }
+
+    require_once($CFG->dirroot . '/mod/hotquestion/locallib.php');
+    $cm = get_coursemodule_from_instance('hotquestion', $hotquestionid, $hotquestion->course, false, MUST_EXIST);
+    $hotquestionobj = new mod_hotquestion($cm->id);
+    $hotquestionobj->update_users_grades($authors);
+
+    return true;
+}
+
+/**
+ * Reset instance data for questions and/or votes.
+ *
+ * @param int $hotquestionid
+ * @param array $resetoptions
+ * @return bool Success/Failure
+ */
+function reset_instance($hotquestionid, array $resetoptions = []) {
     global $DB;
+
+    $defaults = [
+        'questions' => true,
+        'votes' => true,
+        'comments' => true,
+        'rounds' => true,
+        'grades' => true,
+    ];
+    $resetoptions = array_merge($defaults, $resetoptions);
+
     // 20220810 Added to fix git hub issue #65.
-    $hotquestion = $DB->get_record('hotquestion', ['id' => $hotquestionid]);
+    $hotquestion = $DB->get_record('hotquestion', ['id' => $hotquestionid], '*', MUST_EXIST);
     $questions = $DB->get_records('hotquestion_questions', ['hotquestion' => $hotquestionid]);
     foreach ($questions as $question) {
-        if (! $DB->delete_records('hotquestion_votes', ['question' => $question->id])) {
+        if ($resetoptions['votes']) {
+            if (! $DB->delete_records('hotquestion_votes', ['question' => $question->id])) {
+                return false;
+            }
+        }
+
+        if ($resetoptions['comments']) {
+            if (! $DB->delete_records('comments', [
+                'itemid' => $question->id,
+                'component' => 'mod_hotquestion',
+                'commentarea' => 'hotquestion_questions',
+            ])) {
+                return false;
+            }
+        }
+    }
+
+    if ($resetoptions['questions']) {
+        if (! $DB->delete_records('hotquestion_questions', ['hotquestion' => $hotquestionid])) {
             return false;
         }
     }
 
-    if (! $DB->delete_records('hotquestion_questions', ['hotquestion' => $hotquestionid])) {
-        return false;
-    }
-
-    if (! $DB->delete_records('hotquestion_rounds', ['hotquestion' => $hotquestionid])) {
-        return false;
+    if ($resetoptions['rounds']) {
+        if (! $DB->delete_records('hotquestion_rounds', ['hotquestion' => $hotquestionid])) {
+            return false;
+        }
     }
 
     // Contrib by ecastro ULPGC.
-    if (! $DB->delete_records('hotquestion_grades', ['hotquestion' => $hotquestionid])) {
-        return false;
+    if ($resetoptions['grades']) {
+        if (! $DB->delete_records('hotquestion_grades', ['hotquestion' => $hotquestionid])) {
+            return false;
+        }
+        hotquestion_grade_item_update($hotquestion, 'reset');
+    } else if ($resetoptions['votes']) {
+        // Votes affect grade calculations; rebuild grades when votes are reset alone.
+        if (!hotquestion_rebuild_grades_from_questions($hotquestionid)) {
+            return false;
+        }
     }
 
-    hotquestion_grade_item_update($hotquestion, 'reset');
     // Contrib by ecastro ULPGC.
     return true;
 }
@@ -410,14 +478,37 @@ function hotquestion_get_participants($hotquestionid) {
 function hotquestion_reset_userdata($data) {
     global $DB;
 
+    $labelquestions = get_string_manager()->string_exists('resethotquestionquestions', 'hotquestion')
+        ? get_string('resethotquestionquestions', 'hotquestion')
+        : 'Delete all questions (and associated votes/comments)';
+    $labelvotes = get_string_manager()->string_exists('resethotquestionvotes', 'hotquestion')
+        ? get_string('resethotquestionvotes', 'hotquestion')
+        : 'Delete all votes';
+
     $status = [];
-    if (!empty($data->reset_hotquestion)) {
+    // Keep backward compatibility with legacy single-checkbox reset data.
+    $resetquestions = !empty($data->reset_hotquestion_questions) || !empty($data->reset_hotquestion);
+    $resetvotes = !empty($data->reset_hotquestion_votes) || !empty($data->reset_hotquestion);
+
+    if ($resetquestions || $resetvotes) {
         $instances = $DB->get_records('hotquestion', ['course' => $data->courseid]);
         foreach ($instances as $instance) {
-            if (reset_instance($instance->id)) {
+            if ($resetquestions && reset_instance($instance->id)) {
                 $status[] = [
                     'component' => get_string('modulenameplural', 'hotquestion'),
-                    'item' => get_string('resethotquestion', 'hotquestion') . ': ' . $instance->name,
+                    'item' => $labelquestions . ': ' . $instance->name,
+                    'error' => false,
+                ];
+            } else if (!$resetquestions && $resetvotes && reset_instance($instance->id, [
+                'questions' => false,
+                'votes' => true,
+                'comments' => false,
+                'rounds' => false,
+                'grades' => false,
+            ])) {
+                $status[] = [
+                    'component' => get_string('modulenameplural', 'hotquestion'),
+                    'item' => $labelvotes . ': ' . $instance->name,
                     'error' => false,
                 ];
             }
@@ -433,8 +524,29 @@ function hotquestion_reset_userdata($data) {
  * @param stdClass $mform
  */
 function hotquestion_reset_course_form_definition(&$mform) {
+    $labelquestions = get_string_manager()->string_exists('resethotquestionquestions', 'hotquestion')
+        ? get_string('resethotquestionquestions', 'hotquestion')
+        : 'Delete all questions (and associated votes/comments)';
+    $labelvotes = get_string_manager()->string_exists('resethotquestionvotes', 'hotquestion')
+        ? get_string('resethotquestionvotes', 'hotquestion')
+        : 'Delete all votes';
+
     $mform->addElement('header', 'hotquestionheader', get_string('modulenameplural', 'hotquestion'));
-    $mform->addElement('checkbox', 'reset_hotquestion', get_string('resethotquestion', 'hotquestion'));
+    $mform->addElement('advcheckbox', 'reset_hotquestion_questions', $labelquestions);
+    $mform->addElement('advcheckbox', 'reset_hotquestion_votes', $labelvotes);
+}
+
+/**
+ * Course reset form defaults.
+ *
+ * @param stdClass $course
+ * @return array
+ */
+function hotquestion_reset_course_form_defaults($course) {
+    return [
+        'reset_hotquestion_questions' => 0,
+        'reset_hotquestion_votes' => 0,
+    ];
 }
 
 /**

@@ -390,8 +390,14 @@ class mod_hotquestion {
             $this->currentround->starttime,
             $this->currentround->endtime,
         ];
+        $orderby = 'q.approved DESC, tpriority DESC, votecount DESC, q.time DESC';
+        if (!empty($this->instance->grade)) {
+            // When whole-activity grading is enabled, do not sort by teacher priority.
+            $orderby = 'q.approved DESC, votecount DESC, q.time DESC';
+        }
         // 20210306 Added format to the selection.
-        return $DB->get_records_sql('SELECT q.id, q.hotquestion, q.content, q.format, q.userid, q.time,
+        return $DB->get_records_sql(
+            'SELECT q.id, q.hotquestion, q.content, q.format, q.userid, q.time,
             q.anonymous, q.approved, q.tpriority, count(v.voter) as votecount
             FROM {hotquestion_questions} q
             LEFT JOIN {hotquestion_votes} v
@@ -399,9 +405,33 @@ class mod_hotquestion {
             WHERE q.hotquestion = ?
             AND q.time >= ?
             AND q.time <= ?
-            GROUP BY q.id, q.hotquestion, q.content, q.userid, q.time,
+            GROUP BY q.id, q.hotquestion, q.content, q.format, q.userid, q.time,
                      q.anonymous, q.approved, q.tpriority
-            ORDER BY q.approved DESC, tpriority DESC, votecount DESC, q.time DESC', $params);
+            ORDER BY ' . $orderby,
+            $params
+        );
+    }
+
+    /**
+     * Count the number of questions posted by a user in the current round.
+     *
+     * @param int $userid
+     * @return int
+     */
+    public function get_user_question_count_in_current_round($userid) {
+        global $DB;
+
+        $endtime = $this->currentround->endtime == 0 ? 0xFFFFFFFF : $this->currentround->endtime;
+        return (int)$DB->count_records_select(
+            'hotquestion_questions',
+            'hotquestion = ? AND userid = ? AND time >= ? AND time <= ?',
+            [
+                $this->instance->id,
+                $userid,
+                $this->currentround->starttime,
+                $endtime,
+            ]
+        );
     }
 
     /**

@@ -661,5 +661,37 @@ function xmldb_hotquestion_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2026010200, 'hotquestion');
     }
 
+    if ($oldversion < 2026032400) {
+        // Define field minquestionsview to be added to hotquestion.
+        $table = new xmldb_table('hotquestion');
+        $field = new xmldb_field('minquestionsview', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'submitdirections');
+
+        // Conditionally launch add field minquestionsview.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field maxquestionsperuser to be added to hotquestion.
+        $table = new xmldb_table('hotquestion');
+        $field = new xmldb_field(
+            'maxquestionsperuser',
+            XMLDB_TYPE_INTEGER,
+            '4',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'minquestionsview'
+        );
+
+        // Conditionally launch add field maxquestionsperuser.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Hotquestion savepoint reached.
+        upgrade_mod_savepoint(true, 2026032400, 'hotquestion');
+    }
+
     return true;
 }

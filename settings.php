@@ -52,6 +52,26 @@ if ($ADMIN->fulltree) {
         25
     ));
 
+    // Default minimum posts required before viewing other users posts.
+    $settings->add(new admin_setting_configtext(
+        'mod_hotquestion/minquestionsview',
+        new lang_string('minquestionsview', 'hotquestion'),
+        new lang_string('minquestionsview_descr', 'hotquestion'),
+        0,
+        PARAM_INT,
+        4
+    ));
+
+    // Default maximum posts per user in the current round.
+    $settings->add(new admin_setting_configtext(
+        'mod_hotquestion/maxquestionsperuser',
+        new lang_string('maxquestionsperuser', 'hotquestion'),
+        new lang_string('maxquestionsperuser_descr', 'hotquestion'),
+        0,
+        PARAM_INT,
+        4
+    ));
+
     // Default heading questionlabel setting.
     $settings->add(new admin_setting_configtext(
         'mod_hotquestion/questionlabel',

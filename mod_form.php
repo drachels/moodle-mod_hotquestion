@@ -92,6 +92,20 @@ class mod_hotquestion_mod_form extends moodleform_mod {
         $mform->addRule('submitdirections', null, 'required', null, 'client');
         $mform->addRule('submitdirections', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
 
+        // Minimum number of questions required before a user can see others' questions.
+        $mform->addElement('text', 'minquestionsview', get_string('minquestionsview', 'hotquestion'), ['size' => 3]);
+        $mform->addHelpButton('minquestionsview', 'minquestionsview', 'hotquestion');
+        $mform->setType('minquestionsview', PARAM_INT);
+        $mform->setDefault('minquestionsview', (int)($hotquestionconfig->minquestionsview ?? 0));
+        $mform->addRule('minquestionsview', get_string('valueinterror', 'hotquestion'), 'regex', '/^[0-9]+$/', 'client');
+
+        // Maximum number of questions a user may submit in the current round.
+        $mform->addElement('text', 'maxquestionsperuser', get_string('maxquestionsperuser', 'hotquestion'), ['size' => 3]);
+        $mform->addHelpButton('maxquestionsperuser', 'maxquestionsperuser', 'hotquestion');
+        $mform->setType('maxquestionsperuser', PARAM_INT);
+        $mform->setDefault('maxquestionsperuser', (int)($hotquestionconfig->maxquestionsperuser ?? 0));
+        $mform->addRule('maxquestionsperuser', get_string('valueinterror', 'hotquestion'), 'regex', '/^[0-9]+$/', 'client');
+
         // Add Questions label text field here.
         $mform->addElement('text', 'questionlabel', get_string('questionlabel', 'hotquestion'), ['size' => '20']);
         if (!empty($CFG->formatstringstriptags)) {
@@ -241,6 +255,7 @@ class mod_hotquestion_mod_form extends moodleform_mod {
         // Contrib by ecastro ULPGC.
         // Add standard grading elements, common to all modules.
         $this->standard_grading_coursemodule_elements();
+        $mform->setDefault('grade[modgrade_type]', 'none');
 
         $mform->addElement('text', 'postmaxgrade', get_string('postmaxgrade', 'hotquestion'), ['size' => 3]);
         $mform->addHelpButton('postmaxgrade', 'postmaxgrade', 'hotquestion');
@@ -288,6 +303,18 @@ class mod_hotquestion_mod_form extends moodleform_mod {
             if ($data['timeclose'] < $data['viewaftertimeclose']) {
                 $errors['timeclose'] = get_string('viewaftertimeclosevalidation', 'hotquestion');
             }
+        }
+
+        if (isset($data['minquestionsview']) && (int)$data['minquestionsview'] < 0) {
+            $errors['minquestionsview'] = get_string('valueinterror', 'hotquestion');
+        }
+
+        if (isset($data['maxquestionsperuser']) && (int)$data['maxquestionsperuser'] < 0) {
+            $errors['maxquestionsperuser'] = get_string('valueinterror', 'hotquestion');
+        }
+
+        if (!empty($data['maxquestionsperuser']) && ((int)$data['maxquestionsperuser'] < (int)$data['minquestionsview'])) {
+            $errors['maxquestionsperuser'] = get_string('maxquestionslessthanminview', 'hotquestion');
         }
 
         return $errors;
