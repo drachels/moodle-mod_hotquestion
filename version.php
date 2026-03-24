@@ -32,6 +32,6 @@ $plugin->version = 2026032400; // The current module version (Date: YYYYMMDDXX).
 $plugin->requires = 2021122100; // Requires Moodle 3.11 version.
 $plugin->cron = 60; // Period for cron to check this module (secs).
 $plugin->component = 'mod_hotquestion';
-$plugin->maturity = MATURITY_BETA;
+$plugin->maturity = MATURITY_STABLE;
 $plugin->release = "5.0.0 (Build: 2026032400)"; // User-friendly version number.
 $plugin->supported = [311, 501];
