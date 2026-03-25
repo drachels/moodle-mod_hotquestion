@@ -1,4 +1,4 @@
-This files describes changes in the Hot Question code.
+This file describes changes in the Hot Question code.
 
 === Deferred to a later version. ===
 
@@ -59,8 +59,12 @@ This files describes changes in the Hot Question code.
         \mod_hotquestion\task\send_user_digests, but the task file is misnamed
         send_user_nofifications.php and there is no send_user_digests class file,
         so both classes currently fail autoload (class_exists = no).
+    20260325 Re-checked: send_user_notifications now autoloads from
+        send_user_nofifications.php and the task file passes current PHPCS,
+        but send_user_digests is still missing, so notifications remain
+        incomplete and this item stays deferred.
 
-=== 5.0.0 === Pending.
+=== 5.0.0 === 20260325
 20200513 HotQuestion_404bt - suspect $string['questions'] = 'Questions';
     is deprecated.
     20260322 Verified fixed: active heading usage is now driven by
@@ -153,7 +157,7 @@ This files describes changes in the Hot Question code.
         and renderer.php so students below the threshold can only see their own
         entries until they have posted enough questions in the current round.
 20210311 HotQuestion_673 - Create x entries before can see other entries.
-    20260324 Fixed together with HotQuestion_535 using the same
+    20260324 Fixed via HotQuestion_535 using the same
         minimum-entries-before-viewing implementation.
 20230521 HotQuestion_1046 - Need to see about implementing a maximum number
     of questions a user can add.

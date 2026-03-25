@@ -32,7 +32,6 @@ require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
  * @covers \restore_hotquestion_activity_task
  */
 final class backup_restore_test extends \restore_date_testcase {
-
     /**
      * Verify activity backup and restore keeps rounds, votes, and comments.
      */

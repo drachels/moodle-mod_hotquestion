@@ -24,8 +24,6 @@
 
 namespace mod_hotquestion\task;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Adhoc task to send user hotquestion notifications.
  *
@@ -34,7 +32,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class send_user_notifications extends \core\task\adhoc_task {
-
     // Use the logging trait to get some nice, juicy, logging.
     use \core\task\logging_trait;
 
@@ -59,14 +56,14 @@ class send_user_notifications extends \core\task\adhoc_task {
     protected $coursehotquestions = [];
 
     /**
-     * @var \stdClass[] List of hotquestions the questions are in, indexed by hotquestionid.
+     * @var \stdClass[] List of rounds the questions are in, indexed by roundid.
      */
-    protected $hotquestions = [];
+    protected $rounds = [];
 
     /**
-     * @var \stdClass[] List of IDs for hotquestions in each hotquestion.
+     * @var int[] List of round IDs for each hotquestion.
      */
-    protected $hotquestionhotquestions = [];
+    protected $hotquestionrounds = [];
 
     /**
      * @var \stdClass[] List of questions the questions are in, indexed by roundid.
@@ -110,10 +107,6 @@ class send_user_notifications extends \core\task\adhoc_task {
 
         $this->recipient = \core_user::get_user($this->get_userid());
 
-        // Create the generic messageinboundgenerator.
-        //$this->inboundmanager = new \core\message\inbound\address_manager();
-        //$this->inboundmanager->set_handler('\mod_hotquestion\message\inbound\reply_handler');
-
         $data = $this->get_custom_data();
 
         $this->prepare_data((array) $data);
@@ -125,7 +118,7 @@ class send_user_notifications extends \core\task\adhoc_task {
         $this->log_start("Sending messages to {$this->recipient->username} ({$this->recipient->id})");
         foreach ($this->courses as $course) {
             $coursecontext = \context_course::instance($course->id);
-            if (!$course->visible and !has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
+            if (!$course->visible && !has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
                 // The course is hidden and the user does not have access to it.
                 // Permissions may have changed since it was queued.
                 continue;
@@ -136,8 +129,8 @@ class send_user_notifications extends \core\task\adhoc_task {
                 $cm = get_fast_modinfo($course)->instances['hotquestion'][$hotquestionid];
                 $modcontext = \context_module::instance($cm->id);
 
-                foreach (array_values($this->hotquestionhotquestions[$hotquestionid]) as $roundid) {
-                    $round = $this->hotquestions[$roundid];
+                foreach (array_values($this->hotquestionrounds[$hotquestionid]) as $roundid) {
+                    $round = $this->rounds[$roundid];
 
                     if (!hotquestion_user_can_see_round($hotquestion, $round, $modcontext, $this->recipient)) {
                         // User cannot see this round.
@@ -190,8 +183,8 @@ class send_user_notifications extends \core\task\adhoc_task {
             if (!empty($this->recipient->email)) {
                 throw new \moodle_exception('Error sending questions.');
             } else {
-                mtrace("Failed to send emails for the user with ID ".
-                    $this->recipient->id ." due to an empty email address. Skipping re-queuing of the task.");
+                mtrace("Failed to send emails for the user with ID " .
+                    $this->recipient->id . " due to an empty email address. Skipping re-queuing of the task.");
             }
         } else if ($errorcount > 0) {
             // Requeue failed messages as a new task.
@@ -219,7 +212,7 @@ class send_user_notifications extends \core\task\adhoc_task {
             return;
         }
 
-        list($in, $params) = $DB->get_in_or_equal(array_values($questionids));
+        [$in, $params] = $DB->get_in_or_equal(array_values($questionids));
         $sql = "SELECT hqq.*, hq.id AS hotquestion, hq.course
                   FROM {hotquestion_questions} hqq
             INNER JOIN {hotquestion_rounds} d ON d.id = hqq.round
@@ -250,7 +243,7 @@ class send_user_notifications extends \core\task\adhoc_task {
         }
 
         // Fetch all rounds.
-        list($in, $params) = $DB->get_in_or_equal(array_values($roundids));
+        [$in, $params] = $DB->get_in_or_equal(array_values($roundids));
         $this->rounds = $DB->get_records_select('hotquestion_rounds', "id {$in}", $params);
         foreach ($this->rounds as $round) {
             if (empty($this->hotquestionrounds[$round->hotquestion])) {
@@ -260,7 +253,7 @@ class send_user_notifications extends \core\task\adhoc_task {
         }
 
         // Fetch all hotquestions.
-        list($in, $params) = $DB->get_in_or_equal(array_values($hotquestionids));
+        [$in, $params] = $DB->get_in_or_equal(array_values($hotquestionids));
         $this->hotquestions = $DB->get_records_select('hotquestion', "id {$in}", $params);
         foreach ($this->hotquestions as $hotquestion) {
             if (empty($this->coursehotquestions[$hotquestion->course])) {
@@ -270,11 +263,11 @@ class send_user_notifications extends \core\task\adhoc_task {
         }
 
         // Fetch all courses.
-        list($in, $params) = $DB->get_in_or_equal(array_values($courseids));
+        [$in, $params] = $DB->get_in_or_equal(array_values($courseids));
         $this->courses = $DB->get_records_select('course', "id $in", $params);
 
         // Fetch all authors.
-        list($in, $params) = $DB->get_in_or_equal(array_values($userids));
+        [$in, $params] = $DB->get_in_or_equal(array_values($userids));
         $users = $DB->get_recordset_select('user', "id $in", $params);
         foreach ($users as $user) {
             $this->minimise_user_record($user);
@@ -366,7 +359,7 @@ class send_user_notifications extends \core\task\adhoc_task {
                     ],
                     'fullmessagehtml' => [
                         'footer' => \html_writer::tag('p', get_string('replytoquestionbyemail', 'mod_hotquestion')),
-                    ]
+                    ],
                 ]);
         }
 
@@ -467,7 +460,7 @@ class send_user_notifications extends \core\task\adhoc_task {
             'List-Help: ' . $viewurl->out(),
             'Message-ID: ' . hotquestion_get_email_message_id($question->id, $this->recipient->id),
             'X-Course-Id: ' . $course->id,
-            'X-Course-Name: '. format_string($course->fullname, true),
+            'X-Course-Name: ' . format_string($course->fullname, true),
 
             // Headers to help prevent auto-responders.
             'Precedence: Bulk',
@@ -527,7 +520,6 @@ class send_user_notifications extends \core\task\adhoc_task {
             return $this->inboundmanager->generate($this->recipient->id);
         }
 
-        // TODO Check if we can return a string.
         // This will be controlled by the event.
         return null;
     }
@@ -545,7 +537,14 @@ class send_user_notifications extends \core\task\adhoc_task {
      */
     protected function can_question($course, $hotquestion, $round, $question, $cm, $context) {
         if (!isset($this->canquestionto[$round->id])) {
-            $this->canquestionto[$round->id] = hotquestion_user_can_question($hotquestion, $round, $this->recipient, $cm, $course, $context);
+            $this->canquestionto[$round->id] = hotquestion_user_can_question(
+                $hotquestion,
+                $round,
+                $this->recipient,
+                $cm,
+                $course,
+                $context
+            );
         }
         return $this->canquestionto[$round->id];
     }

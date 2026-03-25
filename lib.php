@@ -187,7 +187,12 @@ function hotquestion_rebuild_grades_from_questions($hotquestionid) {
     $DB->delete_records('hotquestion_grades', ['hotquestion' => $hotquestionid]);
     hotquestion_grade_item_update($hotquestion, 'reset');
 
-    $authors = $DB->get_fieldset_select('hotquestion_questions', 'DISTINCT userid', 'hotquestion = ? AND userid > 0', [$hotquestionid]);
+    $authors = $DB->get_fieldset_select(
+        'hotquestion_questions',
+        'DISTINCT userid',
+        'hotquestion = ? AND userid > 0',
+        [$hotquestionid]
+    );
     if (empty($authors)) {
         return true;
     }
@@ -230,11 +235,13 @@ function reset_instance($hotquestionid, array $resetoptions = []) {
         }
 
         if ($resetoptions['comments']) {
-            if (! $DB->delete_records('comments', [
+            if (
+                ! $DB->delete_records('comments', [
                 'itemid' => $question->id,
                 'component' => 'mod_hotquestion',
                 'commentarea' => 'hotquestion_questions',
-            ])) {
+                ])
+            ) {
                 return false;
             }
         }
@@ -499,13 +506,15 @@ function hotquestion_reset_userdata($data) {
                     'item' => $labelquestions . ': ' . $instance->name,
                     'error' => false,
                 ];
-            } else if (!$resetquestions && $resetvotes && reset_instance($instance->id, [
+            } else if (
+                !$resetquestions && $resetvotes && reset_instance($instance->id, [
                 'questions' => false,
                 'votes' => true,
                 'comments' => false,
                 'rounds' => false,
                 'grades' => false,
-            ])) {
+                ])
+            ) {
                 $status[] = [
                     'component' => get_string('modulenameplural', 'hotquestion'),
                     'item' => $labelvotes . ': ' . $instance->name,

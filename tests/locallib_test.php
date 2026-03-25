@@ -31,7 +31,6 @@ require_once($CFG->dirroot . '/mod/hotquestion/locallib.php');
  * @covers \mod_hotquestion::get_questions
  */
 final class locallib_test extends \advanced_testcase {
-
     /**
      * When grading is enabled, teacher priority must not change question ordering.
      */

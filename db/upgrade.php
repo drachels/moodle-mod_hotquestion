@@ -638,7 +638,6 @@ function xmldb_hotquestion_upgrade($oldversion = 0) {
     }
 
     if ($oldversion < 2026010200) {
-
         // Define field notifications to be added to hotquestion.
         $table = new xmldb_table('hotquestion');
         $field = new xmldb_field('notifications', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '1', 'completionpass');

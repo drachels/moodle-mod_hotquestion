@@ -81,13 +81,11 @@ class cron_task extends \core\task\scheduled_task {
      * Run hotquestion cron.
      */
     public function execute() {
-        //global $CFG, $USER, $DB;
         global $CFG, $DB;
 
         $timenow = time();
 
         $endtime   = $timenow - $CFG->maxeditingtime;
-        //$starttime = $endtime - (2 * DAYSECS);
         $starttime = $endtime - (2 * DAYSECS);
         $starttime = 0;
         $this->log_start("Fetching unmailed questions.");
@@ -96,13 +94,11 @@ class cron_task extends \core\task\scheduled_task {
             return false;
         }
 
-        //$this->log_finish("Done");
-
         // Process question data and turn into adhoc tasks.
         $this->process_questions_data($questions);
 
         // Mark new question notifications as sent.
-        list($in, $params) = $DB->get_in_or_equal(array_keys($questions));
+        [$in, $params] = $DB->get_in_or_equal(array_keys($questions));
         $DB->set_field_select('hotquestion_questions', 'mailed', 1, "id {$in}", $params);
     }
 
@@ -121,7 +117,6 @@ class cron_task extends \core\task\scheduled_task {
 
         $start = microtime(true);
         foreach ($questions as $id => $question) {
-            //$roundids[$question->round] = true;
             $hotquestionids[$question->hotquestion] = true;
             $courseids[$question->course] = true;
             $this->add_data_for_question($question);
@@ -174,7 +169,7 @@ class cron_task extends \core\task\scheduled_task {
     protected function fill_course_cache($courseids) {
         global $DB;
 
-        list($in, $params) = $DB->get_in_or_equal($courseids);
+        [$in, $params] = $DB->get_in_or_equal($courseids);
         $this->courses = $DB->get_records_select('course', "id $in", $params);
     }
 
@@ -192,7 +187,7 @@ class cron_task extends \core\task\scheduled_task {
                 'forcesubscribe',
                 'type',
             ];
-        list($in, $params) = $DB->get_in_or_equal($hotquestionids);
+        [$in, $params] = $DB->get_in_or_equal($hotquestionids);
         $this->hotquestions = $DB->get_records_select('hotquestion', "id $in", $params, '', implode(', ', $requiredfields));
         foreach ($this->hotquestions as $id => $hotquestion) {
             \mod_hotquestion\subscriptions::fill_subscription_cache($id);
@@ -210,7 +205,6 @@ class cron_task extends \core\task\scheduled_task {
         if (empty($roundids)) {
             $this->rounds = [];
         } else {
-
             $requiredfields = [
                     'id',
                     'hotquestion',
@@ -218,36 +212,17 @@ class cron_task extends \core\task\scheduled_task {
                     'endtime',
                 ];
 
-            list($in, $params) = $DB->get_in_or_equal($roundids);
+            [$in, $params] = $DB->get_in_or_equal($roundids);
             $this->rounds = $DB->get_records_select(
-                    'hotquestion_rounds', "id $in", $params, '', implode(', ', $requiredfields));
+                'hotquestion_rounds',
+                "id $in",
+                $params,
+                '',
+                implode(', ', $requiredfields)
+            );
         }
     }
 
-
-    /**
-     * Fill the cache of user digest preferences. //Not sure if I need this function converted to use by HotQuestion
-     */
-/*
-    protected function fill_digest_cache() {
-        global $DB;
-
-        if (empty($this->users)) {
-            return;
-        }
-        // Get the list of hotquestion subscriptions for per-user per-hotquestion maildigest settings.
-        list($in, $params) = $DB->get_in_or_equal(array_keys($this->users));
-        $digestspreferences = $DB->get_recordset_select(
-                'hotquestion_digests', "userid $in", $params, '', 'id, userid, hotquestion, maildigest');
-        foreach ($digestspreferences as $digestpreference) {
-            if (!isset($this->digestusers[$digestpreference->hotquestion])) {
-                $this->digestusers[$digestpreference->hotquestion] = [];
-            }
-            $this->digestusers[$digestpreference->hotquestion][$digestpreference->userid] = $digestpreference->maildigest;
-        }
-        $digestspreferences->close();
-    }
-*/
 
     /**
      * Add dsta for the current hotquestion question to the structure of adhoc data.
@@ -269,32 +244,6 @@ class cron_task extends \core\task\scheduled_task {
 
         $this->adhocdata[$question->course][$question->hotquestion][$question->round][$question->id] = $question->id;
     }
-
-    /**
-     * Fill the cache of user subscriptions. // Not sure if I will need this function. Might redo as noting whether a user has posted a question?
-     */
-/*
-    protected function fill_user_subscription_cache() {
-        foreach ($this->hotquestions as $hotquestion) {
-            $cm = get_fast_modinfo($this->courses[$hotquestion->course])->instances['hotquestion'][$hotquestion->id];
-            $modcontext = \context_module::instance($cm->id);
-
-            $this->subscribedusers[$hotquestion->id] = [];
-            if ($users = \mod_hotquestion\subscriptions::fetch_subscribed_users($hotquestion, 0, $modcontext, 'u.id, u.maildigest', true)) {
-                foreach ($users as $user) {
-                    // This user is subscribed to this hotquestion.
-                    $this->subscribedusers[$hotquestion->id][$user->id] = $user->id;
-                    if (!isset($this->users[$user->id])) {
-                        // Store minimal user info.
-                        $this->users[$user->id] = $user;
-                    }
-                }
-                // Release memory.
-                unset($users);
-            }
-        }
-    }
-*/
 
     /**
      * Queue the user tasks.
@@ -322,7 +271,7 @@ class cron_task extends \core\task\scheduled_task {
             // Setup this user so that the capabilities are cached, and environment matches receiving user.
             \core\cron::setup_user($user);
 
-            list($individualquestiondata, $digestquestiondata) = $this->fetch_questions_for_user($user);
+            [$individualquestiondata, $digestquestiondata] = $this->fetch_questions_for_user($user);
 
             if (!empty($digestquestiondata)) {
                 // Insert all of the records for the digest.
@@ -366,11 +315,12 @@ class cron_task extends \core\task\scheduled_task {
                 $counts['ignored']++;
             }
 
-            $this->log(sprintf("Queued %d digests and %d messages for %s",
-                    $usercounts['digests'],
-                    $usercounts['messages'],
-                    $user->id
-                ), 2);
+            $this->log(sprintf(
+                "Queued %d digests and %d messages for %s",
+                $usercounts['digests'],
+                $usercounts['messages'],
+                $user->id
+            ), 2);
         }
         $this->log(
             sprintf(
@@ -381,7 +331,9 @@ class cron_task extends \core\task\scheduled_task {
                 $counts['messages'],
                 $counts['users'],
                 $counts['ignored']
-            ), 1);
+            ),
+            1
+        );
     }
 
     /**
@@ -420,7 +372,7 @@ class cron_task extends \core\task\scheduled_task {
                         continue;
                     }
 
-                    if ($round->groupid > 0 and $groupmode = groups_get_activity_groupmode($cm, $course)) {
+                    if ($round->groupid > 0 && $groupmode = groups_get_activity_groupmode($cm, $course)) {
                         // This round has a groupmode set (SEPARATEGROUPS or VISIBLEGROUPS).
                         // Check whether the user can view it based on their groups.
                         if (!isset($usergroups[$hotquestion->id])) {
@@ -506,47 +458,6 @@ class cron_task extends \core\task\scheduled_task {
                    AND hq.notifications = '1'";
 
         return $DB->get_records_sql($sql, [$starttime, $endtime]);
-
-/*
-        $params = array();
-        //$params['mailed'] = HOTQUESTION_MAILED_PENDING;
-        $params['mailed'] = 0;
-        $params['ptimestart'] = $start time;
-        $params['ptimeend'] = $endtime;
-        $params['mailnow'] = 1;
-
-        if (!empty($CFG->hotquestion_enabletimedquestions)) {
-            if (empty($now)) {
-                $now = time();
-            }
-            $selectsql = "AND (hqq.created >= :ptimestart OR d.timestart >= :pptimestart)";
-            $params['pptimestart'] = $start time;
-            $timedsql = "AND (d.timestart < :dtimestart AND (d.timeend = 0 OR d.timeend > :dtimeend))";
-            $params['dtimestart'] = $now;
-            $params['dtimeend'] = $now;
-        } else {
-            $timedsql = "";
-            $selectsql = "AND p.created >= :ptimestart";
-        }
-
-        return $DB->get_records_sql(
-               "SELECT
-                    p.id,
-                    p.round,
-                    d.hotquestion,
-                    d.course,
-                    p.created,
-                    p.parent,
-                    p.userid
-                  FROM {hotquestion_questions} p
-                  JOIN {hotquestion_rounds} d ON d.id = p.round
-                 WHERE p.mailed = :mailed
-                $selectsql
-                   AND (p.created < :ptimeend OR p.mailnow = :mailnow)
-                $timedsql
-                 ORDER BY p.modified ASC",
-             $params);
-*/
     }
 
     /**

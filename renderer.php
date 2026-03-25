@@ -196,8 +196,8 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      * Return question list, which includes the content, the author, the time
      * and the heat. If $can_vote is true, will display an icon to vote with.
      *
-    * @param bool $allowvote whether current user has vote cap
-    * @param bool $showonlyown whether to restrict list to current user's entries
+     * @param bool $allowvote whether current user has vote cap
+     * @param bool $showonlyown whether to restrict list to current user's entries
      * return table of questionlist
      */
     public function questions($allowvote = true, $showonlyown = false) {
@@ -263,10 +263,12 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                 if ($teacherpriorityvisibility) {
                     // Priority column is visible, so show the label.
                     // 20210924 Changed to format_text prioritylabel column setting.
-                    $table->head[] .= format_text($this->hotquestion->instance->teacherprioritylabel,
-                                      $format = FORMAT_MOODLE,
-                                      $options = null,
-                                      $courseiddonotuse = null);
+                    $table->head[] .= format_text(
+                        $this->hotquestion->instance->teacherprioritylabel,
+                        $format = FORMAT_MOODLE,
+                        $options = null,
+                        $courseiddonotuse = null
+                    );
                 } else {
                     // Priority column is not visible, so replace label with a space.
                     $table->head[] .= ' ';
@@ -376,7 +378,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
 
             // 20230519 Process all questions based on new seeunapproved question preference.
             foreach ($questions as $question) {
-                if ($showonlyown && ((int)$question->userid !== (int)$USER->id) ) {
+                if ($showonlyown && ((int)$question->userid !== (int)$USER->id)) {
                     continue;
                 }
 

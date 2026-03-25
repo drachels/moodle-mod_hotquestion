@@ -24,8 +24,6 @@
 
 namespace mod_hotquestion\search;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Search area for mod_hotquestion activities.
  *
@@ -34,7 +32,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class activity extends \core_search\base_activity {
-
     /**
      * Returns true if this area uses file indexing.
      *
