@@ -667,6 +667,32 @@ class mod_hotquestion {
                      JOIN {hotquestion} h ON h.id = hq.hotquestion
                      JOIN {user} u ON u.id = hq.userid
                     WHERE hq.userid > 0 ";
+        } else if ($CFG->dbtype == 'sqlsrv') {
+            $sql = "SELECT hq.id AS question,
+                      CASE
+                           WHEN u.firstname = 'Guest user'
+                           THEN CONCAT(u.lastname, 'Anonymous')
+                           ELSE u.firstname
+                       END AS 'firstname',
+                           u.lastname AS lastname,
+                           hq.hotquestion AS hotquestion,
+                           hq.content AS content,
+                           hq.userid AS userid,
+                           DATEADD(SECOND, hq.time, '1970-01-01') AS time,
+                           hq.anonymous AS anonymous,
+                           hq.tpriority AS tpriority,
+                           COUNT(hv.voter) AS heat,
+                           hq.approved AS approved,
+                           h.course AS course,
+                           h.teacherprioritylabel AS teacherprioritylabel,
+                           h.heatlabel AS heatlabel,
+                           h.approvallabel AS approvallabel,
+                           h.questionlabel AS questionlabel
+                     FROM {hotquestion_questions} hq
+                LEFT JOIN {hotquestion_votes} hv ON hv.question=hq.id
+                     JOIN {hotquestion} h ON h.id = hq.hotquestion
+                     JOIN {user} u ON u.id = hq.userid
+                    WHERE hq.userid > 0 ";
         } else {
             $sql = "SELECT hq.id AS question,
                       CASE
@@ -894,7 +920,7 @@ class mod_hotquestion {
                   FROM {hotquestion_questions} q
              LEFT JOIN {hotquestion_votes} v ON v.question = q.id
                  WHERE q.hotquestion = ? AND q.userid = ? AND q.anonymous = 0
-              GROUP BY q.id ";
+              GROUP BY q.id, q.approved, q.tpriority";
         $params = [$this->instance->id, $userid];
         $questions = $DB->get_records_sql($sql, $params);
         $grade = 0;
