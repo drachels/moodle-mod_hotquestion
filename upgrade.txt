@@ -66,6 +66,13 @@ This file describes changes in the Hot Question code.
 
 
 === 5.1.0 === pending
+20260502 HotQuestion_1476bt - Issue #123 on github Detect button::BODY_OUTLINE reliably.
+    2026050701 Merged pull request on github and the fetched to local. Saved original v5.0.0
+    and new fetched version.
+20260502 HotQuestion_1477 - HotQuestion - Microsoft SQL Server Issues #124 and #125
+    pull request.
+    2026050701 Merged pull request on github and the fetched to local. Saved original v5.0.0
+    and new fetched version.
 
 
 
