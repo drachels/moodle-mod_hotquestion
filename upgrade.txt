@@ -64,6 +64,11 @@ This file describes changes in the Hot Question code.
         but send_user_digests is still missing, so notifications remain
         incomplete and this item stays deferred.
 
+
+=== 5.1.0 === pending
+
+
+
 === 5.0.0 === 20260325
 20200513 HotQuestion_404bt - suspect $string['questions'] = 'Questions';
     is deprecated.
