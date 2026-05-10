@@ -11,12 +11,6 @@ This file describes changes in the Hot Question code.
     20260322 Verified not fixed: tracker status remains open and no repository
         changes indicate completion of the requested Moodle.org documentation
         update.
-20210823 HotQuestion_750 - It would be nice if users could record questions.
-    20260322 Verified not fixed: no audio/video recording functionality exists
-        in the plugin; feature request remains unimplemented.
-20220421 HotQuestion_844 - The Moodle Mobile app is not supported.
-    20260322 Verified not fixed: no mobile app support classes or REST endpoint
-        integration exists in the plugin; tracker status remains in-progress.
 20220630 HotQuestion_880 - Need to work on lib.php function
     hotquestion_user_outline.
     20260322 Verified not fixed: hotquestion_user_outline() in lib.php
@@ -63,13 +57,89 @@ This file describes changes in the Hot Question code.
         send_user_nofifications.php and the task file passes current PHPCS,
         but send_user_digests is still missing, so notifications remain
         incomplete and this item stays deferred.
+    20260507 Baseline implemented: replaced the broken forum-derived task flow
+        with working hotquestion tasks (classes/task/cron_task.php,
+        send_user_notifications.php, send_user_digests.php) and added
+        db/messages.php providers for notifications and digests. Digest routing
+        currently uses core user maildigest preference (maildigest > 0 = digest,
+        otherwise per-entry notifications).
+    20260508 Completed and verified on moodledev: cron notification pipeline now
+        updates mailed only for questions that actually queued recipient tasks,
+        preserving unmailed rows when no recipients are found. Message providers
+        for notifications/digests are configured for popup+email defaults and
+        plugin version bump was applied with no pending upgrades. Environment
+        requirement confirmed: use php83 for Moodle CLI on moodledev. Email
+        processor was enabled and SMTP path validated (AUTH/RCPT/DATA accepted);
+        teacher notification emails were received in live testing.
 
 
 === 5.1.0 === pending
+20210823 HotQuestion_750 - It would be nice if users could record questions.
+    20260509 Fixed: question submission now persists editor draft media/files
+        (including recorded embeds) into mod_hotquestion question file area,
+        serves them via hotquestion_pluginfile(), and renders them from
+        question content in the activity view.
+    20260509 Desktop posting fix: replaced incorrect file_postupdate_standard_editor
+        call in view.php submit flow (which expected a missing content_editor
+        field and raised ErrorException) with draft-area save logic matching
+        the actual text_editor form data structure.
+20220421 HotQuestion_844 - The Moodle Mobile app is not supported.
+    20260509 Fixed (baseline): added Moodle App integration via db/mobile.php,
+        classes/output/mobile.php, and template mobileapp/mobile_view for
+        authenticated in-app rendering of activity intro and question list.
+    20260509 Expanded mobile UX: restored inline editor-on-view flow (no separate
+        post page), added mobile group selector above the editor, added an
+        Advanced section below the editor tools, and refreshed the question list
+        immediately after in-app submission.
+    20260509 Follow-up mobile parity fixes: wired Advanced attachments/recording
+        support in-app, restored desktop-like toolbar tools (raw grade, view
+        grades, round navigation, reload, new/remove round by capability),
+        added per-entry mobile action controls (priority, vote/remove vote,
+        remove, approve by capability), improved group option behavior to retain
+        return to All participants where allowed, and fixed submit flow to fail
+        correctly when the server rejects empty/invalid posts.
+    20260509 Media visibility follow-up: when Advanced uploads are saved as
+        attachment files (not inline editor embeds), render attachment links
+        under each entry in both mobile and browser views so uploaded
+        camera/audio/video/image files are visible and accessible.
+    20260509 Mobile playback fallback: always show direct per-file media links
+        under mobile entries (even when embedded player markup exists) and
+        open links in the same app webview to avoid non-playing inline media
+        controls on some phone app/runtime combinations.
+    20260509 Mobile inline playback improvement: detect audio/video attachments
+        by MIME type and render HTML5 <audio> / <video> controls directly in
+        the app entry list before the file link fallback.
+    20260509 Mobile inline playback compatibility fix: switched the rendered
+        audio/video tags to direct src playback instead of nested source/type
+        elements, matching the Diary playback fix that avoids phone runtime
+        source parsing issues.
+    20260509 Android webm follow-up: keep inline preview path for supported
+        media (mp4/audio/image), but suppress webm inline preview and strip
+        embedded webm video blocks from mobile-rendered content while keeping
+        per-file attachment links visible so webm stays accessible by link.
+    20260509 Mobile round-selection fix: normalize empty/zero round requests to
+        the latest round so the app opens on the current round instead of the
+        first historical round on initial entry.
+    20260509 Desktop attachment preview follow-up: render inline previews for
+        non-embedded video/audio/image attachment files in the browser list view
+        before the fallback file links, so phone-recorded mp4 uploads appear
+        directly in the HotQuestion table instead of as links only.
+    20260509 Latest-round display + webm hint follow-up: fixed latest-round
+        fallback to report the current round number correctly as the newest round
+        instead of 0 of X, and added a mobile webm playback hint with app-captured
+        file links for link-only webm playback cases.
+    20260509 Mobile group label + View Grades fix: switched selectedgroupname
+        to use id-based lookup so the group selector summary always shows the
+        correct group name even when the selected flag mismatches, bumped
+        plugin version to invalidate the app's local plugin content cache
+        (so students no longer need a manual reload after the round fix),
+        and changed the View Grades toolbar button to use core-link
+        capture=false so it opens the grades page in the in-app browser
+        rather than triggering the raw-URL fallback.
 20260502 HotQuestion_1476bt - Issue #123 on github Detect button::BODY_OUTLINE reliably.
     2026050701 Merged pull request on github and the fetched to local. Saved original v5.0.0
     and new fetched version.
-20260502 HotQuestion_1477 - HotQuestion - Microsoft SQL Server Issues #124 and #125
+20260502 HotQuestion_1477bt - HotQuestion - Microsoft SQL Server Issues #124 and #125
     pull request.
     2026050701 Merged pull request on github and the fetched to local. Saved original v5.0.0
     and new fetched version.

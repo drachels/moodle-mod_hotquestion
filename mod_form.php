@@ -447,7 +447,7 @@ class hotquestion_form extends moodleform {
     public function definition() {
         global $CFG, $DB;
 
-        [$allowanonymous, $cm] = $this->_customdata;
+        [$allowanonymous, $cm, $editoroptions] = $this->_customdata + [null, null, []];
 
         $temp = $DB->get_record('hotquestion', ['id' => $cm->instance]);
 
@@ -465,7 +465,8 @@ class hotquestion_form extends moodleform {
                 $options = null,
                 $courseiddonotuse = null
             ),
-            'wrap="virtual" rows="5"'
+            ['rows' => 5],
+            $editoroptions
         );
         $mform->setType('text_editor', PARAM_RAW);
 

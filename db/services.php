@@ -15,23 +15,30 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the version of hotquestion.
- *
- * This code fragment is called by moodle_needs_upgrading() and
- * /admin/index.php
+ * List of services for mod_hotquestion.
  *
  * @package   mod_hotquestion
- * @copyright 2011 Sun Zhigang
- * @copyright 2016 onwards AL Rachels drachels@drachels.com
+ * @copyright 2026 AL Rachels <drachels@drachels.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2026050901; // The current module version (Date: YYYYMMDDXX).
-$plugin->requires = 2021122100; // Requires Moodle 3.11 version.
-$plugin->cron = 60; // Period for cron to check this module (secs).
-$plugin->component = 'mod_hotquestion';
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = "5.1.0 (Build: 2026050901)"; // User-friendly version number.
-$plugin->supported = [405, 501];
+$functions = [
+    'mod_hotquestion_view_hotquestion' => [
+        'classname' => 'mod_hotquestion\\external\\view_hotquestion',
+        'methodname' => 'execute',
+        'description' => 'Trigger the course module viewed event for HotQuestion.',
+        'type' => 'write',
+        'ajax' => true,
+        'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
+    'mod_hotquestion_submit_question' => [
+        'classname' => 'mod_hotquestion\\external\\submit_question',
+        'methodname' => 'execute',
+        'description' => 'Submit a new question to a HotQuestion activity.',
+        'type' => 'write',
+        'ajax' => true,
+        'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
+];

@@ -384,7 +384,56 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
 
                 $line = [];
                 $formatoptions->para = false;
-                $content = format_text($question->content, FORMAT_MOODLE, $formatoptions);
+                $formatoptions->context = $context;
+                $content = file_rewrite_pluginfile_urls(
+                    $question->content,
+                    'pluginfile.php',
+                    $context->id,
+                    'mod_hotquestion',
+                    'question',
+                    $question->id
+                );
+                $content = format_text($content, $question->format, $formatoptions);
+                $attachmentshtml = '';
+                $storedfiles = get_file_storage()->get_area_files($context->id, 'mod_hotquestion', 'question', $question->id, 'id', false);
+                if (!empty($storedfiles)) {
+                    $attachmentpreviews = [];
+                    $attachmentlinks = [];
+                    foreach ($storedfiles as $storedfile) {
+                        $filename = $storedfile->get_filename();
+                        if ($filename === '.') {
+                            continue;
+                        }
+
+                        // Skip files already embedded in the question content.
+                        if (strpos((string)$question->content, $filename) !== false) {
+                            continue;
+                        }
+
+                        $fileurl = moodle_url::make_pluginfile_url(
+                            $context->id,
+                            'mod_hotquestion',
+                            'question',
+                            $question->id,
+                            $storedfile->get_filepath(),
+                            $filename
+                        );
+                        $previewhtml = $this->render_attachment_preview($storedfile, $fileurl);
+                        if ($previewhtml !== '') {
+                            $attachmentpreviews[] = $previewhtml;
+                        }
+                        $attachmentlinks[] = html_writer::link($fileurl, s($filename), ['target' => '_blank', 'rel' => 'noopener']);
+                    }
+
+                    if (!empty($attachmentlinks)) {
+                        $attachmentshtml = html_writer::start_div('hotquestionattachments');
+                        if (!empty($attachmentpreviews)) {
+                            $attachmentshtml .= html_writer::div(implode('', $attachmentpreviews), 'hotquestionattachmentpreviews');
+                        }
+                        $attachmentshtml .= html_writer::div(implode('<br>', $attachmentlinks), 'hotquestionattachmentlinks');
+                        $attachmentshtml .= html_writer::end_div();
+                    }
+                }
                 $user = $DB->get_record('user', ['id' => $question->userid]);
                 // If groups is set to all participants or matches current group, show the question.
                 if ((! $groups) || (groups_is_member($groups, $user->id))) {
@@ -452,7 +501,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                         }
 
                         // Rating and comments should go in next line after authorinfo.
-                        $line[] = $content . $authorinfo . $comment;
+                        $line[] = $content . $attachmentshtml . $authorinfo . $comment;
 
                         // Get current priority value to show.
                         $tpriority = $question->tpriority;
@@ -585,6 +634,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                         $table->data[] = $line;
                     }
                 }
+
             }
 
             $output .= html_writer::table($table);
@@ -593,6 +643,66 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
         }
 
         return $output;
+    }
+
+    /**
+     * Render a desktop preview block for a question attachment when the browser can play it inline.
+     *
+     * @param stored_file $storedfile
+     * @param moodle_url $fileurl
+     * @return string
+     */
+    private function render_attachment_preview($storedfile, $fileurl) {
+        $filename = (string)$storedfile->get_filename();
+        $mimetype = strtolower(trim((string)$storedfile->get_mimetype()));
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $url = $fileurl->out(false);
+
+        $isvideo = (strpos($mimetype, 'video/') === 0) || in_array($extension, ['mp4', 'webm', 'ogg', 'ogv', 'm4v', 'mov'], true);
+        $isaudio = (strpos($mimetype, 'audio/') === 0) || in_array($extension, ['mp3', 'm4a', 'aac', 'wav', 'oga', 'opus'], true);
+        $isimage = (strpos($mimetype, 'image/') === 0) || in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'], true);
+
+        if ($isvideo) {
+            return html_writer::tag(
+                'div',
+                html_writer::tag('div', s($filename), ['class' => 'hotquestionattachmentmedianame']) .
+                html_writer::tag('video', html_writer::empty_tag('source', ['src' => $url]), [
+                    'controls' => 'controls',
+                    'preload' => 'metadata',
+                    'class' => 'hotquestionattachmentvideo',
+                ]),
+                ['class' => 'hotquestionattachmentmediawrap hotquestionattachmentmediawrapvideo']
+            );
+        }
+
+        if ($isaudio) {
+            return html_writer::tag(
+                'div',
+                html_writer::tag('div', s($filename), ['class' => 'hotquestionattachmentmedianame']) .
+                html_writer::tag('audio', html_writer::empty_tag('source', ['src' => $url]), [
+                    'controls' => 'controls',
+                    'preload' => 'metadata',
+                    'class' => 'hotquestionattachmentaudio',
+                ]),
+                ['class' => 'hotquestionattachmentmediawrap hotquestionattachmentmediawrapaudio']
+            );
+        }
+
+        if ($isimage) {
+            return html_writer::tag(
+                'div',
+                html_writer::tag('div', s($filename), ['class' => 'hotquestionattachmentmedianame']) .
+                html_writer::empty_tag('img', [
+                    'src' => $url,
+                    'alt' => s($filename),
+                    'loading' => 'lazy',
+                    'class' => 'hotquestionattachmentimage',
+                ]),
+                ['class' => 'hotquestionattachmentmediawrap hotquestionattachmentmediawrapimage']
+            );
+        }
+
+        return '';
     }
 
     /**

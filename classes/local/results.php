@@ -405,15 +405,15 @@ class results {
 
         $context = context_module::instance($hq->cm->id);
         // If marked anonymous and anonymous is allowed then change from actual userid to guest.
-        if (isset($fromform->anonymous) && $fromform->anonymous && $fromform->instance->anonymouspost) {
-            $newentry->anonymous = $fromform->anonymous;
+        if (!empty($newentry->anonymous) && !empty($hq->instance->anonymouspost)) {
             // Assume this user is guest.
             $newentry->userid = $CFG->siteguest;
         }
 
-        if (!empty($newentry->content)) {
+        if (!empty(trim((string)$newentry->content))) {
             // If there is some actual content, then create a new record.
-            $DB->insert_record('hotquestion_questions', $newentry);
+            unset($newentry->submitbutton);
+            $questionid = $DB->insert_record('hotquestion_questions', $newentry);
             $params = [
                 'objectid' => $hq->cm->id,
                 'context' => $context,
@@ -425,7 +425,7 @@ class results {
             $hq->update_completion_state();
             // Contrib by ecastro ULPGC update grades for question author.
             $hq->update_users_grades([$USER->id]);
-            return true;
+            return $questionid;
         } else {
             return false;
         }

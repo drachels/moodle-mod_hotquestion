@@ -321,6 +321,7 @@ class mod_hotquestion {
             $this->currentround = array_pop($rounds);
             $this->prevround = array_pop($rounds);
             $this->nextround = null;
+            $this->currentroundx = $this->roundcount;
         }
 
         return $roundid;

@@ -1,0 +1,319 @@
+{{!
+    @template mod_hotquestion/mobileapp/mobile_view
+
+    Mobile view page for Hot Question.
+}}
+
+<div class="ion-padding">
+    <ion-card>
+        <ion-card-header>
+            <ion-card-title>{{name}}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+            <core-format-text text="{{intro}}" component="mod_hotquestion" component-id="{{cmid}}"></core-format-text>
+        </ion-card-content>
+    </ion-card>
+
+    {{#showgroupselector}}
+        <details class="ion-margin-bottom" style="border: 1px solid #ddd; border-radius: 8px; padding: 6px 10px; background: #fff;">
+            <summary style="cursor: pointer; font-size: 14px; color: #333;">
+                {{#str}}groups{{/str}}: {{selectedgroupname}}
+            </summary>
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+                {{#groupoptions}}
+                    <ion-button
+                        size="small"
+                        {{#selected}}color="primary"{{/selected}}
+                        {{^selected}}fill="outline"{{/selected}}
+                        core-site-plugins-new-content
+                        title="{{name}}"
+                        component="mod_hotquestion"
+                        method="mobile_course_view"
+                        [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{id}}', roundid: '{{currentroundid}}'}">
+                        {{name}}
+                    </ion-button>
+                {{/groupoptions}}
+            </div>
+        </details>
+    {{/showgroupselector}}
+
+    {{#canask}}
+        <ion-card>
+            <ion-card-content>
+                <h3 style="margin-top: 0;">{{#str}}hotquestionmobileaskquestion, mod_hotquestion{{/str}}</h3>
+
+                <div style="margin-bottom: 15px;">
+                    <core-rich-text-editor
+                        [control]="textControl"
+                        name="mod_hotquestion_content"
+                        component="mod_hotquestion"
+                        [componentId]="CONTENT_OTHERDATA.cmid"
+                        contextLevel="module"
+                        [contextInstanceId]="CONTENT_OTHERDATA.cmid"
+                        [draftExtraParams]="{itemid: CONTENT_OTHERDATA.itemid}"
+                        placeholder="{{#str}}postbutton, mod_hotquestion{{/str}}">
+                    </core-rich-text-editor>
+                </div>
+
+                <ion-accordion-group [value]="advanced ? 'advanced' : ''" (ionChange)="onAdvancedChanged($event)">
+                    <ion-accordion value="advanced" toggleIconSlot="start">
+                        <ion-item slot="header">
+                            <ion-label>
+                                <h3 class="item-heading">{{#str}}advanced{{/str}}</h3>
+                            </ion-label>
+                        </ion-item>
+                        <div slot="content">
+                            {{#canattachments}}
+                                <core-attachments
+                                    [files]="attachmentsFiles"
+                                    [maxSize]="CONTENT_OTHERDATA.maxbytes"
+                                    [maxSubmissions]="CONTENT_OTHERDATA.maxattachments"
+                                    [component]="'mod_hotquestion'"
+                                    [componentId]="CONTENT_OTHERDATA.cmid"
+                                    [allowOffline]="true"
+                                    [courseId]="CONTENT_OTHERDATA.courseid">
+                                </core-attachments>
+                            {{/canattachments}}
+
+                            {{#allowanonymous}}
+                                <ion-item lines="none" style="margin-bottom: 15px;">
+                                    <ion-label>{{#str}}hotquestionmobilepostanon, mod_hotquestion{{/str}}</ion-label>
+                                    <ion-toggle
+                                        slot="end"
+                                        [(ngModel)]="CONTENT_OTHERDATA.anonymous">
+                                    </ion-toggle>
+                                </ion-item>
+                            {{/allowanonymous}}
+                        </div>
+                    </ion-accordion>
+                </ion-accordion-group>
+
+                <div class="ion-margin-top">
+                    <ion-button
+                        expand="block"
+                        [disabled]="isSaving"
+                        (click)="saveQuestion()">
+                        {{#str}}hotquestionmobilesubmit, mod_hotquestion{{/str}}
+                    </ion-button>
+                </div>
+            </ion-card-content>
+        </ion-card>
+    {{/canask}}
+
+    {{#showrawgrade}}
+        <ion-item lines="none">
+            <ion-label>{{rawgrade}}</ion-label>
+        </ion-item>
+    {{/showrawgrade}}
+
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px;">
+        {{#showviewgrades}}
+            <ion-button size="small" fill="outline" href="{{viewgradesurl}}" core-link [capture]="false" [showBrowserWarning]="false">
+                {{#str}}viewgrades, mod_hotquestion{{/str}}
+            </ion-button>
+        {{/showviewgrades}}
+
+        {{#showprevround}}
+            <ion-button
+                size="small"
+                fill="outline"
+                core-site-plugins-new-content
+                component="mod_hotquestion"
+                method="mobile_course_view"
+                [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{selectedgroupid}}', roundid: '{{prevroundid}}'}">
+                {{#str}}previousround, mod_hotquestion{{/str}}
+            </ion-button>
+        {{/showprevround}}
+
+        <ion-item lines="none" style="--min-height: 30px;">
+            <ion-label>{{currentroundx}}{{#str}}xofn, mod_hotquestion{{/str}}{{roundcount}}</ion-label>
+        </ion-item>
+
+        {{#shownextround}}
+            <ion-button
+                size="small"
+                fill="outline"
+                core-site-plugins-new-content
+                component="mod_hotquestion"
+                method="mobile_course_view"
+                [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{selectedgroupid}}', roundid: '{{nextroundid}}'}">
+                {{#str}}nextround, mod_hotquestion{{/str}}
+            </ion-button>
+        {{/shownextround}}
+
+        {{#shownewround}}
+            <ion-button
+                size="small"
+                fill="outline"
+                color="success"
+                core-site-plugins-new-content
+                component="mod_hotquestion"
+                method="mobile_course_view"
+                [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{selectedgroupid}}', roundid: '{{currentroundid}}', action: 'newround'}">
+                {{#str}}newround, mod_hotquestion{{/str}}
+            </ion-button>
+        {{/shownewround}}
+
+        {{#showremoveround}}
+            <ion-button
+                size="small"
+                fill="outline"
+                color="danger"
+                core-site-plugins-new-content
+                component="mod_hotquestion"
+                method="mobile_course_view"
+                [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{selectedgroupid}}', roundid: '{{currentroundid}}', action: 'removeround'}">
+                {{#str}}removeround, mod_hotquestion{{/str}}
+            </ion-button>
+        {{/showremoveround}}
+
+        <ion-button
+            size="small"
+            fill="outline"
+            core-site-plugins-new-content
+            component="mod_hotquestion"
+            method="mobile_course_view"
+            [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{selectedgroupid}}', roundid: '{{currentroundid}}'}">
+            {{#str}}reload{{/str}}
+        </ion-button>
+    </div>
+
+    {{#showonlyownnotice}}
+        <core-alert message="{{showonlyownnoticetext}}" type="info"></core-alert>
+    {{/showonlyownnotice}}
+
+    {{#hasquestions}}
+        <h3>{{#str}}questions, mod_hotquestion{{/str}}</h3>
+        <ion-list>
+            {{#questions}}
+            <ion-card>
+                <ion-card-content>
+                    <core-format-text text="{{content}}" component="mod_hotquestion" component-id="{{cmid}}"></core-format-text>
+
+                    {{#hasattachments}}
+                        <div style="margin-top: 10px;">
+                            {{#hasattachmentspreviews}}
+                                <core-format-text text="{{attachmentshtml}}" component="mod_hotquestion" component-id="{{cmid}}"></core-format-text>
+                            {{/hasattachmentspreviews}}
+                            {{#attachments}}
+                                <div>
+                                    <div style="margin-top: 4px;">
+                                        <a href="{{url}}" core-link [capture]="true" [showBrowserWarning]="false">{{name}}</a>
+                                    </div>
+                                    {{#showwebmhint}}
+                                        <div style="margin-top: 4px; color: #666; font-size: 13px;">
+                                            {{#str}}hotquestionmobilewebmhint, mod_hotquestion{{/str}}
+                                        </div>
+                                    {{/showwebmhint}}
+                                </div>
+                            {{/attachments}}
+                        </div>
+                    {{/hasattachments}}
+
+                    <p style="color: #666; font-size: 13px; margin-top: 8px;">
+                        <strong>{{author}}</strong> &bull; {{time}}
+                    </p>
+
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+                        {{#showtpriority}}
+                            <div>
+                                <strong>{{teacherprioritylabel}}:</strong> {{tpriority}}
+                                {{#canuppriority}}
+                                    <ion-button
+                                        size="small"
+                                        fill="clear"
+                                        core-site-plugins-new-content
+                                        component="mod_hotquestion"
+                                        method="mobile_course_view"
+                                        [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{selectedgroupid}}', roundid: '{{currentroundid}}', action: 'tpriority', q: '{{id}}', u: '1'}">
+                                        +
+                                    </ion-button>
+                                {{/canuppriority}}
+                                {{#candownpriority}}
+                                    <ion-button
+                                        size="small"
+                                        fill="clear"
+                                        core-site-plugins-new-content
+                                        component="mod_hotquestion"
+                                        method="mobile_course_view"
+                                        [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{selectedgroupid}}', roundid: '{{currentroundid}}', action: 'tpriority', q: '{{id}}', u: '0'}">
+                                        -
+                                    </ion-button>
+                                {{/candownpriority}}
+                            </div>
+                        {{/showtpriority}}
+
+                        {{#showheat}}
+                            <div>
+                                <strong>{{heatlabel}}:</strong> {{heat}}
+                                {{#canvoteup}}
+                                    <ion-button
+                                        size="small"
+                                        fill="clear"
+                                        core-site-plugins-new-content
+                                        component="mod_hotquestion"
+                                        method="mobile_course_view"
+                                        [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{selectedgroupid}}', roundid: '{{currentroundid}}', action: 'vote', q: '{{id}}'}">
+                                        +
+                                    </ion-button>
+                                {{/canvoteup}}
+                                {{#canremovevote}}
+                                    <ion-button
+                                        size="small"
+                                        fill="clear"
+                                        color="danger"
+                                        core-site-plugins-new-content
+                                        component="mod_hotquestion"
+                                        method="mobile_course_view"
+                                        [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{selectedgroupid}}', roundid: '{{currentroundid}}', action: 'removevote', q: '{{id}}'}">
+                                        {{#str}}removevote, mod_hotquestion{{/str}}
+                                    </ion-button>
+                                {{/canremovevote}}
+                            </div>
+                        {{/showheat}}
+
+                        {{#showremoveapprove}}
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                {{#canremove}}
+                                    <ion-button
+                                        size="small"
+                                        fill="outline"
+                                        color="danger"
+                                        core-site-plugins-new-content
+                                        component="mod_hotquestion"
+                                        method="mobile_course_view"
+                                        [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{selectedgroupid}}', roundid: '{{currentroundid}}', action: 'remove', q: '{{id}}'}">
+                                        {{removelabel}}
+                                    </ion-button>
+                                {{/canremove}}
+
+                                {{#canapprove}}
+                                    <ion-button
+                                        size="small"
+                                        fill="outline"
+                                        core-site-plugins-new-content
+                                        component="mod_hotquestion"
+                                        method="mobile_course_view"
+                                        [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{selectedgroupid}}', roundid: '{{currentroundid}}', action: 'approve', q: '{{id}}'}">
+                                        {{approvallabel}}: {{#approved}}{{#str}}approvedyes, mod_hotquestion{{/str}}{{/approved}}{{^approved}}{{#str}}approvedno, mod_hotquestion{{/str}}{{/approved}}
+                                    </ion-button>
+                                {{/canapprove}}
+                            </div>
+                        {{/showremoveapprove}}
+                    </div>
+                </ion-card-content>
+            </ion-card>
+            {{/questions}}
+        </ion-list>
+    {{/hasquestions}}
+
+    {{^hasquestions}}
+        <core-alert message="{{#str}}noquestions, mod_hotquestion{{/str}}" type="info"></core-alert>
+    {{/hasquestions}}
+
+    <div class="ion-margin-top">
+        <ion-button expand="block" fill="outline" href="{{viewurl}}">
+            {{#str}}hotquestionmobileopenbrowser, mod_hotquestion{{/str}}
+        </ion-button>
+    </div>
+</div>

@@ -1,0 +1,76 @@
+{{!
+    @template mod_hotquestion/mobileapp/mobile_submit_question
+
+    Mobile question submission page for Hot Question.
+    Uses core-rich-text-editor which natively supports audio/video recording in the Moodle App.
+
+    Example context (json):
+    {
+        "cmid": 12,
+        "courseid": 3,
+        "name": "Hot Question",
+        "canedit": true,
+        "allowanonymous": true
+    }
+}}
+
+<div class="ion-padding">
+    <ion-card>
+        <ion-card-header>
+            <ion-card-title>{{name}}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+            <h3 style="margin-top: 0;">{{#str}}hotquestionmobileaskquestion, mod_hotquestion{{/str}}</h3>
+
+            {{^canedit}}
+                <core-alert message="{{#str}}hotquestionmobilenoask, mod_hotquestion{{/str}}" type="info"></core-alert>
+            {{/canedit}}
+
+            {{#canedit}}
+                <div style="margin-bottom: 15px;">
+                    <core-rich-text-editor
+                        [control]="textControl"
+                        name="mod_hotquestion_content"
+                        component="mod_hotquestion"
+                        [componentId]="CONTENT_OTHERDATA.cmid"
+                        contextLevel="module"
+                        [contextInstanceId]="CONTENT_OTHERDATA.cmid"
+                        [draftExtraParams]="{itemid: CONTENT_OTHERDATA.itemid}"
+                        placeholder="{{#str}}postbutton, mod_hotquestion{{/str}}">
+                    </core-rich-text-editor>
+                </div>
+
+                {{#allowanonymous}}
+                    <ion-item lines="none" style="margin-bottom: 15px;">
+                        <ion-label>{{#str}}hotquestionmobilepostanon, mod_hotquestion{{/str}}</ion-label>
+                        <ion-toggle
+                            slot="end"
+                            [(ngModel)]="CONTENT_OTHERDATA.anonymous">
+                        </ion-toggle>
+                    </ion-item>
+                {{/allowanonymous}}
+
+                <div class="ion-margin-top">
+                    <ion-button
+                        expand="block"
+                        [disabled]="isSaving"
+                        (click)="saveQuestion()">
+                        {{#str}}hotquestionmobilesubmit, mod_hotquestion{{/str}}
+                    </ion-button>
+
+                    <ion-button expand="block" fill="clear" onclick="history.back();">
+                        {{#str}}cancel{{/str}}
+                    </ion-button>
+                </div>
+            {{/canedit}}
+
+            {{^canedit}}
+                <div class="ion-margin-top">
+                    <ion-button expand="block" fill="clear" onclick="history.back();">
+                        {{#str}}back{{/str}}
+                    </ion-button>
+                </div>
+            {{/canedit}}
+        </ion-card-content>
+    </ion-card>
+</div>

@@ -615,6 +615,92 @@ function hotquestion_supports($feature) {
             return null;
     }
 }
+
+/**
+ * Serves files for module areas.
+ *
+ * @param stdClass $course
+ * @param stdClass $cm
+ * @param context_module $context
+ * @param string $filearea
+ * @param array $args
+ * @param bool $forcedownload
+ * @param array $options
+ * @return bool
+ */
+function hotquestion_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
+    global $DB;
+
+    if ($context->contextlevel != CONTEXT_MODULE || $context->instanceid != $cm->id) {
+        return false;
+    }
+
+    require_login($course, true, $cm);
+
+    if ($filearea !== 'intro' && $filearea !== 'question') {
+        return false;
+    }
+
+    require_capability('mod/hotquestion:view', $context);
+
+    if ($filearea === 'intro') {
+        if (empty($args)) {
+            return false;
+        }
+
+        $fs = get_file_storage();
+        $relativepath = implode('/', $args);
+        $fullpath = "/$context->id/mod_hotquestion/intro/0/$relativepath";
+        $file = $fs->get_file_by_hash(sha1($fullpath));
+        if (!$file || $file->is_directory()) {
+            return false;
+        }
+
+        send_stored_file($file, 0, 0, $forcedownload, $options);
+        return true;
+    }
+
+    if (empty($args)) {
+        return false;
+    }
+
+    $itemid = (int)array_shift($args);
+    if (!$itemid || empty($args)) {
+        return false;
+    }
+
+    $question = $DB->get_record(
+        'hotquestion_questions',
+        ['id' => $itemid, 'hotquestion' => $cm->instance],
+        'id, approved',
+        IGNORE_MISSING
+    );
+
+    if (!$question) {
+        return false;
+    }
+
+    if (
+        empty($question->approved)
+        && !has_capability('mod/hotquestion:manageentries', $context)
+        && !has_capability('mod/hotquestion:rate', $context)
+    ) {
+        return false;
+    }
+
+    $filename = array_pop($args);
+    $filepath = '/' . (empty($args) ? '' : implode('/', $args) . '/') ;
+
+    $fs = get_file_storage();
+    $file = $fs->get_file($context->id, 'mod_hotquestion', 'question', $itemid, $filepath, $filename);
+    if (!$file || $file->is_directory()) {
+        return false;
+    }
+
+    send_stored_file($file, 0, 0, $forcedownload, $options);
+    return true;
+}
+
     /**
      * Validate comment parameter before perform other comments actions.
      *

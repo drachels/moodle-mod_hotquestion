@@ -143,7 +143,8 @@ $output->init($hq);
 
 // 20230522 Changed to $canask. Process submitted question.
 if ($canask) {
-    $mform = new hotquestion_form(null, [$hq->instance->anonymouspost, $hq->cm]);
+    [$editoroptions, ] = results::hotquestion_get_editor_and_attachment_options($course, $context, null);
+    $mform = new hotquestion_form(null, [$hq->instance->anonymouspost, $hq->cm, $editoroptions]);
     // 20230520 Needed isset so changing unapproved question views do not cause an error.
     if (($fromform = $mform->get_data()) && (isset($fromform->submitbutton))) {
         if ($maxentriesreached) {
@@ -157,7 +158,6 @@ if ($canask) {
         confirm_sesskey();
         $timenow = time();
 
-        // This will be overwritten after we have the entryid.
         // Data for all the fields for a question, plus the submit button status.
         $newentry = new stdClass();
         $newentry->hotquestion = $hq->instance->id;
@@ -176,9 +176,22 @@ if ($canask) {
         $newentry->submitbutton = $fromform->submitbutton;
 
         // From this point, need to process the question and save it.
-        if (!results::add_new_question($newentry, $hq)) { // Returns 1 if valid question submitted.
+        $questionid = results::add_new_question($newentry, $hq);
+        if (!$questionid) {
             redirect('view.php?id=' . $hq->cm->id, get_string('invalidquestion', 'hotquestion'));
         }
+
+        // Persist editor draft files (including recorded media) against this new question entry.
+        $processedcontent = file_save_draft_area_files(
+            (int)$fromform->text_editor['itemid'],
+            $context->id,
+            'mod_hotquestion',
+            'question',
+            $questionid,
+            ['subdirs' => 0, 'maxbytes' => 0, 'maxfiles' => -1],
+            $newentry->content
+        );
+        $DB->set_field('hotquestion_questions', 'content', $processedcontent, ['id' => $questionid]);
 
         if (!$ajax) {
             redirect('view.php?id=' . $hq->cm->id, get_string('questionsubmitted', 'hotquestion'));
