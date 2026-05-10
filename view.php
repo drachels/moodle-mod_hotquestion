@@ -63,6 +63,7 @@ $canview = has_capability('mod/hotquestion:view', $context);
 $ismanagerorrater = $entriesmanager || $canrate;
 
 $mform = null;
+$canpostentries = $canask || $ismanagerorrater;
 $userroundpostcount = 0;
 $hideotherentries = false;
 $maxentriesreached = false;
@@ -112,7 +113,11 @@ if ($cm->completion == COMPLETION_TRACKING_AUTOMATIC) {
 
 // Set page.
 if (!$ajax) {
-    $PAGE->set_url('/mod/hotquestion/view.php', ['id' => $hq->cm->id]);
+    $pageurlparams = ['id' => $hq->cm->id];
+    if ($roundid > 0) {
+        $pageurlparams['round'] = $roundid;
+    }
+    $PAGE->set_url('/mod/hotquestion/view.php', $pageurlparams);
     $PAGE->set_title($hq->instance->name);
     $PAGE->set_heading($hq->course->shortname);
     $PAGE->set_context($context);
@@ -124,6 +129,7 @@ require_capability('mod/hotquestion:view', $context);
 
 $minquestionsview = (int)($hq->instance->minquestionsview ?? 0);
 $maxquestionsperuser = (int)($hq->instance->maxquestionsperuser ?? 0);
+$viewinghistoricalround = ($hq->get_nextround() !== null);
 
 if ($canask) {
     $userroundpostcount = $hq->get_user_question_count_in_current_round($USER->id);
@@ -140,15 +146,23 @@ if ($canask) {
 // Get local renderer.
 $output = $PAGE->get_renderer('mod_hotquestion');
 $output->init($hq);
+$returnurl = 'view.php?id=' . $hq->cm->id;
+if ($roundid > 0) {
+    $returnurl .= '&round=' . $roundid;
+}
 
-// 20230522 Changed to $canask. Process submitted question.
-if ($canask) {
+// Process submitted question.
+if ($canpostentries) {
     [$editoroptions, ] = results::hotquestion_get_editor_and_attachment_options($course, $context, null);
-    $mform = new hotquestion_form(null, [$hq->instance->anonymouspost, $hq->cm, $editoroptions]);
+    $mform = new hotquestion_form(null, [$hq->instance->anonymouspost, $hq->cm, $editoroptions, $roundid]);
     // 20230520 Needed isset so changing unapproved question views do not cause an error.
     if (($fromform = $mform->get_data()) && (isset($fromform->submitbutton))) {
+        if ($viewinghistoricalround && !$ismanagerorrater) {
+            redirect($returnurl, get_string('historicalroundclarifystudent', 'hotquestion'));
+        }
+
         if ($maxentriesreached) {
-            redirect('view.php?id=' . $hq->cm->id, get_string('maxquestionsreached', 'hotquestion', (object)[
+            redirect($returnurl, get_string('maxquestionsreached', 'hotquestion', (object)[
                 'max' => $maxquestionsperuser,
             ]));
         }
@@ -165,6 +179,20 @@ if ($canask) {
         $newentry->format = $fromform->text_editor['format'];
         $newentry->userid = $USER->id;
         $newentry->time = $timenow;
+        $appendactualentrydate = false;
+        $ishistoricalround = $viewinghistoricalround;
+        if ($ishistoricalround && ($entriesmanager || $canrate)) {
+            // Keep moderation clarification posts in the selected historical round.
+            $selectedround = $hq->get_currentround();
+            $roundstart = (int)$selectedround->starttime;
+            $roundend = (int)$selectedround->endtime;
+            if ($roundend > $roundstart) {
+                $newentry->time = $roundstart + (int)floor(($roundend - $roundstart) / 2);
+            } else {
+                $newentry->time = $roundstart;
+            }
+            $appendactualentrydate = true;
+        }
         if (isset($fromform->anonymous)) {
             $newentry->anonymous = $fromform->anonymous;
         } else {
@@ -175,10 +203,19 @@ if ($canask) {
         $newentry->tpriority = 0;
         $newentry->submitbutton = $fromform->submitbutton;
 
+        if ($appendactualentrydate) {
+            $actualentrydate = get_string('historicalroundactualentrydate', 'hotquestion', userdate($timenow));
+            if ((int)$newentry->format === FORMAT_HTML) {
+                $newentry->content .= '<p><em>' . s($actualentrydate) . '</em></p>';
+            } else {
+                $newentry->content .= "\n\n" . $actualentrydate;
+            }
+        }
+
         // From this point, need to process the question and save it.
         $questionid = results::add_new_question($newentry, $hq);
         if (!$questionid) {
-            redirect('view.php?id=' . $hq->cm->id, get_string('invalidquestion', 'hotquestion'));
+            redirect($returnurl, get_string('invalidquestion', 'hotquestion'));
         }
 
         // Persist editor draft files (including recorded media) against this new question entry.
@@ -194,7 +231,7 @@ if ($canask) {
         $DB->set_field('hotquestion_questions', 'content', $processedcontent, ['id' => $questionid]);
 
         if (!$ajax) {
-            redirect('view.php?id=' . $hq->cm->id, get_string('questionsubmitted', 'hotquestion'));
+            redirect($returnurl, get_string('questionsubmitted', 'hotquestion'));
         }
 
         die;
@@ -209,13 +246,13 @@ if (!empty($action)) {
                 $u = required_param('u', PARAM_INT);  // Flag to change priority up or down.
                 $q = required_param('q', PARAM_INT);  // Question id to change priority.
                 $hq->tpriority_change($u, $q);
-                redirect('view.php?id=' . $hq->cm->id, null); // Needed to prevent priority change on page reload.
+                redirect($returnurl, null); // Needed to prevent priority change on page reload.
             }
             break;
         case 'vote':
             if (has_capability('mod/hotquestion:vote', $context)) {
                 if ($hideotherentries) {
-                    redirect('view.php?id=' . $hq->cm->id, get_string('minentriesbeforeviewnotice', 'hotquestion', (object)[
+                    redirect($returnurl, get_string('minentriesbeforeviewnotice', 'hotquestion', (object)[
                         'required' => $minquestionsview,
                         'current' => $userroundpostcount,
                     ]));
@@ -230,13 +267,14 @@ if (!empty($action)) {
                 ) {
                     $q = required_param('q', PARAM_INT);  // Question id to vote.
                     $hq->vote_on($q);
+                    redirect($returnurl);
                 }
             }
             break;
         case 'removevote':
             if (has_capability('mod/hotquestion:vote', $context)) {
                 if ($hideotherentries) {
-                    redirect('view.php?id=' . $hq->cm->id, get_string('minentriesbeforeviewnotice', 'hotquestion', (object)[
+                    redirect($returnurl, get_string('minentriesbeforeviewnotice', 'hotquestion', (object)[
                         'required' => $minquestionsview,
                         'current' => $userroundpostcount,
                     ]));
@@ -251,6 +289,7 @@ if (!empty($action)) {
                 ) {
                     $q = required_param('q', PARAM_INT);  // Question id to vote.
                     $hq->remove_vote($q);
+                    redirect($returnurl);
                 }
             }
             break;
@@ -274,7 +313,7 @@ if (!empty($action)) {
                 // Call remove_question function in locallib.
                 $hq->remove_question($q);
                 // Need redirect that goes to the round where removing question.
-                redirect('view.php?id=' . $hq->cm->id, get_string('questionremovesuccess', 'hotquestion'));
+                redirect($returnurl, get_string('questionremovesuccess', 'hotquestion'));
                 // Does work without it as it just defaults to current round.
             }
             break;
@@ -290,7 +329,7 @@ if (!empty($action)) {
                 $q = required_param('q', PARAM_INT);  // Question id to approve.
                 // Call approve question function in locallib.
                 $hq->approve_question($q);
-                redirect('view.php?id=' . $hq->cm->id, null); // Needed to prevent toggle on page reload.
+                redirect($returnurl, null); // Needed to prevent toggle on page reload.
             }
             break;
     }
@@ -425,12 +464,20 @@ if (!$ajax) {
     }
 
     if (
-        (has_capability('mod/hotquestion:manage', $context)
-        || has_capability('mod/hotquestion:rate', $context))
-        || (has_capability('mod/hotquestion:ask', $context)
+        $entriesmanager
+        || $canrate
+        || ($canask
+           && !$viewinghistoricalround
            && hqavailable::is_hotquestion_active($hq)
            && !$maxentriesreached)
     ) {
+        if ($viewinghistoricalround) {
+            if ($entriesmanager || $canrate) {
+                echo $OUTPUT->notification(get_string('historicalroundclarifyteacher', 'hotquestion'), 'info');
+            } else {
+                echo $OUTPUT->notification(get_string('historicalroundclarifystudent', 'hotquestion'), 'info');
+            }
+        }
         if ($mform) {
             $mform->display();
         }

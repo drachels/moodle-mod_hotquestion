@@ -447,7 +447,7 @@ class hotquestion_form extends moodleform {
     public function definition() {
         global $CFG, $DB;
 
-        [$allowanonymous, $cm, $editoroptions] = $this->_customdata + [null, null, []];
+        [$allowanonymous, $cm, $editoroptions, $roundid] = $this->_customdata + [null, null, [], -1];
 
         $temp = $DB->get_record('hotquestion', ['id' => $cm->instance]);
 
@@ -472,6 +472,11 @@ class hotquestion_form extends moodleform {
 
         $mform->addElement('hidden', 'id', $cm->id, 'id="hotquestion_courseid"');
         $mform->setType('id', PARAM_INT);
+
+        if ((int)$roundid > 0) {
+            $mform->addElement('hidden', 'round', (int)$roundid);
+            $mform->setType('round', PARAM_INT);
+        }
 
         $submitgroup = [];
         $submitgroup[] = $mform->createElement('submit', 'submitbutton', get_string('postbutton', 'hotquestion'));

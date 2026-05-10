@@ -314,7 +314,11 @@ class results {
     public static function hotquestion_display_question_comments($question, $cm, $context, $course) {
         global $CFG, $USER, $OUTPUT, $DB;
         $html = '';
-        if (($question->approved) || (has_capability('mod/hotquestion:manageentries', $context))) {
+        if (
+            $question->approved
+            || has_capability('mod/hotquestion:manageentries', $context)
+            || has_capability('mod/hotquestion:rate', $context)
+        ) {
             // Get question comments and display the comment box.
             $context = context_module::instance($cm->id);
             $cmt = new stdClass();
@@ -415,8 +419,14 @@ class results {
             unset($newentry->submitbutton);
             $questionid = $DB->insert_record('hotquestion_questions', $newentry);
             $params = [
-                'objectid' => $hq->cm->id,
+                'objectid' => (int)$questionid,
                 'context' => $context,
+                'relateduserid' => (int)$newentry->userid,
+                'other' => [
+                    'hotquestionid' => (int)$hq->instance->id,
+                    'roundid' => !empty($hq->get_currentround()->id) ? (int)$hq->get_currentround()->id : 0,
+                    'anonymous' => !empty($newentry->anonymous) ? 1 : 0,
+                ],
             ];
             $event = add_question::create($params);
             $event->trigger();

@@ -40,7 +40,7 @@ class remove_round extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'd';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
-        $this->data['objecttable'] = 'hotquestion';
+        $this->data['objecttable'] = 'hotquestion_rounds';
     }
 
     /**
@@ -58,8 +58,9 @@ class remove_round extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return "The user with id '$this->userid' has removed a round, it's questions, and it's votes
-            for the hotquestion activity with the course module id '$this->contextinstanceid'.";
+        $hotquestionid = $this->other['hotquestionid'] ?? 0;
+        return "The user with id '$this->userid' removed round id '$this->objectid' and its related questions/votes " .
+            "from hotquestion id '$hotquestionid' in course module id '$this->contextinstanceid'.";
     }
 
     /**

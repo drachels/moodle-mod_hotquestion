@@ -40,7 +40,7 @@ class add_question extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
-        $this->data['objecttable'] = 'hotquestion';
+        $this->data['objecttable'] = 'hotquestion_questions';
     }
 
     /**
@@ -58,8 +58,12 @@ class add_question extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return "The user with id '$this->userid' has created a question for the hotquestion activity with the course module id
-            '$this->contextinstanceid'.";
+        $hotquestionid = $this->other['hotquestionid'] ?? 0;
+        $roundid = $this->other['roundid'] ?? 0;
+        $anonymous = !empty($this->other['anonymous']) ? 'yes' : 'no';
+        return "The user with id '$this->userid' created the question with id '$this->objectid' " .
+            "(anonymous: $anonymous) in hotquestion id '$hotquestionid', round id '$roundid', " .
+            "course module id '$this->contextinstanceid'.";
     }
 
     /**

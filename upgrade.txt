@@ -1,7 +1,9 @@
 This file describes changes in the Hot Question code.
 
 === Deferred to a later version. ===
-
+20200522 HotQuestion_486 - Need to update Behat tests for new remove confirmation.
+20200522 HotQuestion_488 - Need Groups and Priority added to Behat Tests.
+20200522 HotQuestion_489 - Need Behat Tests for Approval Testing.
 20210221 HotQuestion_640 - New capability request - sort order for questions.
     20260322 Verified not fixed: question ordering remains hardcoded in
         locallib.php get_questions() (ORDER BY approved, tpriority, votecount,
@@ -11,11 +13,16 @@ This file describes changes in the Hot Question code.
     20260322 Verified not fixed: tracker status remains open and no repository
         changes indicate completion of the requested Moodle.org documentation
         update.
+20220430 HotQuestion_853 - Sometimes when a user has no question submitted, they
+    are getting a grade anyway. This is listed without details in v4.2.4.
 20220630 HotQuestion_880 - Need to work on lib.php function
     hotquestion_user_outline.
     20260322 Verified not fixed: hotquestion_user_outline() in lib.php
         (lines 232-236) returns empty stdClass with no data; function stub
         exists but contains no implementation to populate time or info fields.
+20220706 HotQuestion_881 - When Whole Hot Question grading is NOT enabled, the
+    Activity completion should reflect that. See the ticket for details.
+    Listed in v4.2.4 but not sure if it is fixed. So, verify.
 20220705 HotQuestion_884 - Feature request issue #59 - implement word limit.
     20260322 Verified not fixed: no word limit feature exists in the plugin;
         no settings or backend code for limiting question submission length
@@ -25,6 +32,11 @@ This file describes changes in the Hot Question code.
     20260322 Verified not fixed: mod_form.php (lines 431-445) contains only
         a single 'editor' element with no option to select between plain text
         and HTML editor; no plaintext toggle setting exists in the plugin.
+20220821 HotQuestion_911 - Need to see about including grades in the Export tool.
+    Listed in v4.2.4 section, but without resolution details.
+20230120 HotQuestion_995 - The grade table needs more info included in the download. 
+    Some items (3) have been done. Still have others (3) to do. Listed in
+    section for v4.2.4, but without resolution details.
 20230308 HotQuestion_1018 - Need to see about adding tags to question entries.
     20260322 Verified not fixed: no tag support exists anywhere in the plugin;
         no FEATURE_TAGS, core_tag, tag_area, or tag_set references found; the
@@ -47,34 +59,61 @@ This file describes changes in the Hot Question code.
     20260324 Deferred: moving out of 5.0.0 pending because this depends on
         external Grade Me plugin integration and current demand does not justify
         implementation work right now.
-20251020 HotQuestion_1384 - feature request for notifications.
-    20260322 Verified not fixed: classes/task/cron_task.php queues
-        \mod_hotquestion\task\send_user_notifications and
-        \mod_hotquestion\task\send_user_digests, but the task file is misnamed
-        send_user_nofifications.php and there is no send_user_digests class file,
-        so both classes currently fail autoload (class_exists = no).
-    20260325 Re-checked: send_user_notifications now autoloads from
-        send_user_nofifications.php and the task file passes current PHPCS,
-        but send_user_digests is still missing, so notifications remain
-        incomplete and this item stays deferred.
-    20260507 Baseline implemented: replaced the broken forum-derived task flow
-        with working hotquestion tasks (classes/task/cron_task.php,
-        send_user_notifications.php, send_user_digests.php) and added
-        db/messages.php providers for notifications and digests. Digest routing
-        currently uses core user maildigest preference (maildigest > 0 = digest,
-        otherwise per-entry notifications).
-    20260508 Completed and verified on moodledev: cron notification pipeline now
-        updates mailed only for questions that actually queued recipient tasks,
-        preserving unmailed rows when no recipients are found. Message providers
-        for notifications/digests are configured for popup+email defaults and
-        plugin version bump was applied with no pending upgrades. Environment
-        requirement confirmed: use php83 for Moodle CLI on moodledev. Email
-        processor was enabled and SMTP path validated (AUTH/RCPT/DATA accepted);
-        teacher notification emails were received in live testing.
-
+20231201 HotQuestion_1123 - Allow the 'submit your question' text area to be plain
+    text #61. 20231201 Started investigating how to do this. Listed in v4.2.4
+    section, but without resolution details, if any.
 
 === 5.1.0 === pending
-20210823 HotQuestion_750 - It would be nice if users could record questions.
+20200522 HotQuestion_478bt - Need to add more info to events.
+    20260510 Fixed (bt): enriched active event payloads and descriptions to
+        log concrete object ids and context (question id, round id,
+        hotquestion id, related user, export scope) for add/remove vote,
+        add/remove question, add/remove round, and download actions.
+20200522 HotQuestion_480bt - Round info is not in the CSV download.
+    20260510 Fixed (bt): added a Round ID column to question CSV export,
+        including SQL round mapping via hotquestion_rounds time ranges and
+        output updates for both admin and teacher/manager export modes.
+20200522 HotQuestion_482bt - Need Who Voted toolbutton.
+    20260510 Fixed (bt): added a Who Voted toolbutton to the HotQuestion
+        toolbar and implemented a dedicated whovoted.php report page that
+        lists current-round questions with their voter names for users with
+        rating capability.
+    20260510 Follow-up fix: added previous/next round navigation within
+        whovoted.php and switched voter-name lookup to the full Moodle name
+        field set (firstname/lastname plus phonetic/middle/alternate fields)
+        so previous-round checks work and fullname() no longer throws notices.
+20200522 HotQuestion_483bt - Investigate making old round the current round.
+    20260510 Investigated current behavior and implemented a safe practical
+        fix: while viewing a historical round, question-level action links
+        (priority, remove, approve, vote/remove-vote where shown) now keep the
+        selected round in the URL, and view.php action redirects now preserve
+        that same round context. This avoids being forced back to the latest
+        round during moderation/review operations.
+    20260510 Follow-up refinement: while viewing a historical round,
+        teacher/admin submissions now persist into that selected round
+        (clarification workflow), historical-round guidance notices are shown
+        above the post form, and teacher/admin comments are allowed on any
+        entry in any round.
+    20260510 Follow-up refinement #2: historical-round clarification entries
+        now append the real entry date/time in the content, comments are
+        visible in any round to participants, and posting late comments on
+        historical-round entries is restricted to teacher/admin roles.
+    20260510 Follow-up refinement #3: fixed historical-round clarification
+        posting path so users with manageentries/rate capability can submit
+        new entries from the view form (submission handling is no longer
+        limited to ask-only users).
+    20260510 Follow-up refinement #4: while viewing a historical round,
+        the post form now preserves the selected round in submit requests so
+        teacher/admin clarification posts remain in that old round, and
+        students no longer see/use a historical-round post button.
+    20260510 Follow-up refinement #5: ensured round context is submitted as
+        form data (hidden round parameter), preventing submit fall-through to
+        the latest round when teacher/admin posts from an old round view.
+    20260510 Investigation note: fully promoting an old round to global
+        "current/open" status is not a safe direct mutation in the existing
+        time-window round model because historical question-to-round membership
+        is derived from question timestamps and round start/end boundaries.
+20210823 HotQuestion_750bt - It would be nice if users could record questions.
     20260509 Fixed: question submission now persists editor draft media/files
         (including recorded embeds) into mod_hotquestion question file area,
         serves them via hotquestion_pluginfile(), and renders them from
@@ -83,7 +122,7 @@ This file describes changes in the Hot Question code.
         call in view.php submit flow (which expected a missing content_editor
         field and raised ErrorException) with draft-area save logic matching
         the actual text_editor form data structure.
-20220421 HotQuestion_844 - The Moodle Mobile app is not supported.
+20220421 HotQuestion_844bt - The Moodle Mobile app is not supported.
     20260509 Fixed (baseline): added Moodle App integration via db/mobile.php,
         classes/output/mobile.php, and template mobileapp/mobile_view for
         authenticated in-app rendering of activity intro and question list.
@@ -136,6 +175,30 @@ This file describes changes in the Hot Question code.
         and changed the View Grades toolbar button to use core-link
         capture=false so it opens the grades page in the in-app browser
         rather than triggering the raw-URL fallback.
+20251020 HotQuestion_1384bt - feature request for notifications.
+    20260322 Verified not fixed: classes/task/cron_task.php queues
+        \mod_hotquestion\task\send_user_notifications and
+        \mod_hotquestion\task\send_user_digests, but the task file is misnamed
+        send_user_nofifications.php and there is no send_user_digests class file,
+        so both classes currently fail autoload (class_exists = no).
+    20260325 Re-checked: send_user_notifications now autoloads from
+        send_user_nofifications.php and the task file passes current PHPCS,
+        but send_user_digests is still missing, so notifications remain
+        incomplete and this item stays deferred.
+    20260507 Baseline implemented: replaced the broken forum-derived task flow
+        with working hotquestion tasks (classes/task/cron_task.php,
+        send_user_notifications.php, send_user_digests.php) and added
+        db/messages.php providers for notifications and digests. Digest routing
+        currently uses core user maildigest preference (maildigest > 0 = digest,
+        otherwise per-entry notifications).
+    20260508 Completed and verified on moodledev: cron notification pipeline now
+        updates mailed only for questions that actually queued recipient tasks,
+        preserving unmailed rows when no recipients are found. Message providers
+        for notifications/digests are configured for popup+email defaults and
+        plugin version bump was applied with no pending upgrades. Environment
+        requirement confirmed: use php83 for Moodle CLI on moodledev. Email
+        processor was enabled and SMTP path validated (AUTH/RCPT/DATA accepted);
+        teacher notification emails were received in live testing.
 20260502 HotQuestion_1476bt - Issue #123 on github Detect button::BODY_OUTLINE reliably.
     2026050701 Merged pull request on github and the fetched to local. Saved original v5.0.0
     and new fetched version.
@@ -285,7 +348,6 @@ HotQuestion_1378 - HotQuestion - Adopting for Moodle Plugin CI. #108. Did a merg
     Some items (3) have been done. Still have others (3) to do.
 20231201 HotQuestion_1123 - Allow the 'submit your question' text area to be plain
     text #61. 20231201 Started investigating how to do this.
-
 
 === 4.2.3 === 20241009
 202040904 HotQuestion_1316 - Some tool icons render way oversize in Moodle 4.5 code.

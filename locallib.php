@@ -118,8 +118,14 @@ class mod_hotquestion {
         if ($question && $this->can_vote_on($question)) {
             // Trigger and log a vote event.
             $params = [
-                'objectid' => $this->cm->id,
+                'objectid' => (int)$question->id,
                 'context' => $context,
+                'relateduserid' => (int)$question->userid,
+                'other' => [
+                    'hotquestionid' => (int)$this->instance->id,
+                    'questionuserid' => (int)$question->userid,
+                    'roundid' => !empty($this->currentround->id) ? (int)$this->currentround->id : 0,
+                ],
             ];
             $event = update_vote::create($params);
             $event->trigger();
@@ -153,8 +159,14 @@ class mod_hotquestion {
         if ($question && $this->can_vote_on($question)) {
             // Trigger and log a remove_vote event.
             $params = [
-                'objectid' => $this->cm->id,
+                'objectid' => (int)$question->id,
                 'context' => $context,
+                'relateduserid' => (int)$question->userid,
+                'other' => [
+                    'hotquestionid' => (int)$this->instance->id,
+                    'questionuserid' => (int)$question->userid,
+                    'roundid' => !empty($this->currentround->id) ? (int)$this->currentround->id : 0,
+                ],
             ];
             $event = remove_vote::create($params);
             $event->trigger();
@@ -264,8 +276,12 @@ class mod_hotquestion {
 
         // Trigger add new round event.
         $params = [
-            'objectid' => $this->cm->id,
+            'objectid' => (int)$rid,
             'context' => $context,
+            'other' => [
+                'hotquestionid' => (int)$this->instance->id,
+                'previousroundid' => !empty($old->id) ? (int)$old->id : 0,
+            ],
         ];
         $event = add_round::create($params);
         $event->trigger();
@@ -443,21 +459,27 @@ class mod_hotquestion {
     public function remove_question() {
         global $CFG, $DB;
 
-        $data = new StdClass();
-        $data->hotquestion = $this->instance->id;
         $context = context_module::instance($this->cm->id);
-        // Trigger remove_question event.
-        $params = [
-            'objectid' => $this->cm->id,
-            'context' => $context,
-        ];
-        $event = remove_question::create($params);
-        $event->trigger();
 
         if (null !== (required_param('q', PARAM_INT))) {
             $questionid = required_param('q', PARAM_INT);
             $itemid = required_param('q', PARAM_INT);
             $dbquestion = $DB->get_record('hotquestion_questions', ['id' => $questionid]);
+
+            if ($dbquestion) {
+                // Trigger remove_question event with question and round context.
+                $params = [
+                    'objectid' => (int)$dbquestion->id,
+                    'context' => $context,
+                    'relateduserid' => (int)$dbquestion->userid,
+                    'other' => [
+                        'hotquestionid' => (int)$this->instance->id,
+                        'roundid' => !empty($this->currentround->id) ? (int)$this->currentround->id : 0,
+                    ],
+                ];
+                $event = remove_question::create($params);
+                $event->trigger();
+            }
 
             // Contrib by ecastro ULPGC.
             $users = $this->get_question_voters($questionid);
@@ -494,18 +516,19 @@ class mod_hotquestion {
     public function remove_round() {
         global $CFG, $DB;
 
-        $data = new StdClass();
-        $data->hotquestion = $this->instance->id;
         $context = context_module::instance($this->cm->id);
-        // Trigger remove_question event.
+
+        $roundid = required_param('round', PARAM_INT);
+        // Trigger remove_round event with explicit round and activity context.
         $params = [
-            'objectid' => $this->cm->id,
+            'objectid' => (int)$roundid,
             'context' => $context,
+            'other' => [
+                'hotquestionid' => (int)$this->instance->id,
+            ],
         ];
         $event = remove_round::create($params);
         $event->trigger();
-
-        $roundid = required_param('round', PARAM_INT);
         if ($this->currentround->endtime == 0) {
             $this->currentround->endtime = 0xFFFFFFFF;  // Hack.
         }
@@ -599,6 +622,10 @@ class mod_hotquestion {
         $params = [
             'objectid' => $this->cm->id,
             'context' => $context,
+            'other' => [
+                'hotquestionid' => (int)$this->instance->id,
+                'scope' => is_siteadmin($USER->id) ? 'all' : 'instance',
+            ],
         ];
         $event = download_questions::create($params);
         $event->trigger();
@@ -628,6 +655,7 @@ class mod_hotquestion {
             get_string('lastname'),
             get_string('userid', 'hotquestion'),
             get_string('hotquestion', 'hotquestion') . ' ID',
+            get_string('roundid', 'hotquestion'),
             get_string('question', 'hotquestion') . ' ID',
             get_string('time', 'hotquestion'),
             get_string('anonymous', 'hotquestion'),
@@ -651,6 +679,7 @@ class mod_hotquestion {
                        END AS firstname,
                            u.lastname AS lastname,
                            hq.hotquestion AS hotquestion,
+                           hqr.id AS roundid,
                            hq.content AS content,
                            hq.userid AS userid,
                            to_char(to_timestamp(hq.time), 'YYYY-MM-DD HH24:MI:SS') AS time,
@@ -665,6 +694,9 @@ class mod_hotquestion {
                            h.questionlabel AS questionlabel
                      FROM {hotquestion_questions} hq
                 LEFT JOIN {hotquestion_votes} hv ON hv.question=hq.id
+                LEFT JOIN {hotquestion_rounds} hqr ON hqr.hotquestion = hq.hotquestion
+                         AND hq.time >= hqr.starttime
+                         AND (hqr.endtime = 0 OR hq.time <= hqr.endtime)
                      JOIN {hotquestion} h ON h.id = hq.hotquestion
                      JOIN {user} u ON u.id = hq.userid
                     WHERE hq.userid > 0 ";
@@ -677,6 +709,7 @@ class mod_hotquestion {
                        END AS 'firstname',
                            u.lastname AS lastname,
                            hq.hotquestion AS hotquestion,
+                           hqr.id AS roundid,
                            hq.content AS content,
                            hq.userid AS userid,
                            DATEADD(SECOND, hq.time, '1970-01-01') AS time,
@@ -691,6 +724,9 @@ class mod_hotquestion {
                            h.questionlabel AS questionlabel
                      FROM {hotquestion_questions} hq
                 LEFT JOIN {hotquestion_votes} hv ON hv.question=hq.id
+                LEFT JOIN {hotquestion_rounds} hqr ON hqr.hotquestion = hq.hotquestion
+                         AND hq.time >= hqr.starttime
+                         AND (hqr.endtime = 0 OR hq.time <= hqr.endtime)
                      JOIN {hotquestion} h ON h.id = hq.hotquestion
                      JOIN {user} u ON u.id = hq.userid
                     WHERE hq.userid > 0 ";
@@ -703,6 +739,7 @@ class mod_hotquestion {
                        END AS 'firstname',
                            u.lastname AS 'lastname',
                            hq.hotquestion AS hotquestion,
+                           hqr.id AS roundid,
                            hq.content AS content,
                            hq.userid AS userid,
                            FROM_UNIXTIME(hq.time) AS TIME,
@@ -717,13 +754,16 @@ class mod_hotquestion {
                            h.questionlabel AS questionlabel
                      FROM {hotquestion_questions} hq
                 LEFT JOIN {hotquestion_votes} hv ON hv.question = hq.id
+                 LEFT JOIN {hotquestion_rounds} hqr ON hqr.hotquestion = hq.hotquestion
+                        AND hq.time >= hqr.starttime
+                        AND (hqr.endtime = 0 OR hq.time <= hqr.endtime)
                      JOIN {hotquestion} h ON h.id = hq.hotquestion
                      JOIN {user} u ON u.id = hq.userid
                     WHERE hq.userid > 0 ";
         }
 
         $sql .= ($whichhqs);
-        $sql .= " GROUP BY u.lastname, u.firstname, hq.hotquestion, hq.id, hq.content,
+        $sql .= " GROUP BY u.lastname, u.firstname, hq.hotquestion, hqr.id, hq.id, hq.content,
                             hq.userid, hq.time, hq.anonymous, hq.tpriority, hq.approved,
                             h.course, h.teacherprioritylabel, h.heatlabel, h.approvallabel,h.questionlabel
                   ORDER BY hq.hotquestion ASC, u.lastname ASC, u.firstname ASC, hq.id ASC, tpriority DESC, heat";
@@ -743,6 +783,7 @@ class mod_hotquestion {
                     get_string('lastname'),
                     get_string('userid', 'hotquestion'),
                     get_string('hotquestion', 'hotquestion') . ' ID',
+                    get_string('roundid', 'hotquestion'),
                     get_string('question', 'hotquestion') . ' ID',
                     get_string('time', 'hotquestion'),
                     get_string('anonymous', 'hotquestion'),
@@ -804,6 +845,7 @@ class mod_hotquestion {
                             null,
                             null,
                             null,
+                            null,
                             get_string('exportfilenamep2', 'hotquestion') .
                                 gmdate("Ymd_Hi") . get_string('for', 'hotquestion') .
                                 $CFG->wwwroot,
@@ -831,6 +873,7 @@ class mod_hotquestion {
                     $q->lastname,
                     $q->userid,
                     $q->hotquestion,
+                    $q->roundid,
                     $q->question,
                     $q->time,
                     $q->anonymous,

@@ -40,7 +40,7 @@ class add_round extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
-        $this->data['objecttable'] = 'hotquestion';
+        $this->data['objecttable'] = 'hotquestion_rounds';
     }
 
     /**
@@ -58,8 +58,11 @@ class add_round extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return "The user with id '$this->userid' has started a new round of questions
-            for the hotquestion activity with the course module id '$this->contextinstanceid'.";
+        $hotquestionid = $this->other['hotquestionid'] ?? 0;
+        $previousroundid = $this->other['previousroundid'] ?? 0;
+        return "The user with id '$this->userid' started round id '$this->objectid' " .
+            "for hotquestion id '$hotquestionid' after closing round id '$previousroundid' " .
+            "in course module id '$this->contextinstanceid'.";
     }
 
     /**

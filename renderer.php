@@ -101,6 +101,20 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                 ),
                 ['class' => 'toolbutton']
             );
+
+            // Print "Who voted" report toolbutton for current round.
+            $url = new moodle_url('/mod/hotquestion/whovoted.php', [
+                'id' => $this->hotquestion->cm->id,
+                'round' => $this->hotquestion->get_currentround()->id,
+            ]);
+            $toolbuttons[] = html_writer::link(
+                $url,
+                $this->pix_icon(
+                    'i/users',
+                    get_string('whovoted', 'hotquestion')
+                ),
+                ['class' => 'toolbutton']
+            );
         }
 
         // Print prev/next round toolbuttons.
@@ -479,19 +493,14 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
 
                         // 20220410 Add rating and comments here.
                         $comment = '';
-                        // 20210306 Generate comment box using API. 20220410 Got it working.
-                        // Added flags so that students can see and make comments only in the current round.
-                        // Teachers, managers, and admin can see and make comments in ANY round.
-                        $f1 = $this->hotquestion->get_currentroundx();
-                        $f2 = $this->hotquestion->get_roundcount();
-
+                        // Show comments in any round; posting permissions are enforced by comment callbacks.
+                        $cancomment = has_capability('mod/hotquestion:comment', $context);
+                        $canmoderatecomments = has_capability('mod/hotquestion:manageentries', $context)
+                            || has_capability('mod/hotquestion:rate', $context);
                         if (
-                            (($this->hotquestion->instance->comments)
-                            && ($question->approved)
-                            && (($f1 == $f2)
-                            || (!$f1)) && (has_capability('mod/hotquestion:comment', $context)))
-                            || (($this->hotquestion->instance->comments)
-                            && (has_capability('mod/hotquestion:manageentries', $context)))
+                            $this->hotquestion->instance->comments
+                            && $cancomment
+                            && ($canmoderatecomments || $question->approved)
                         ) {
                             [$context, $course, $cm] = get_context_info_array($context->id);
                             // Initialize and then check to see how many comments for this question.
@@ -502,6 +511,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
 
                         // Rating and comments should go in next line after authorinfo.
                         $line[] = $content . $attachmentshtml . $authorinfo . $comment;
+                        $roundparam = '&round=' . (int)$this->hotquestion->get_currentround()->id;
 
                         // Get current priority value to show.
                         $tpriority = $question->tpriority;
@@ -513,7 +523,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                         // Had to add width/height to priority and heat due to now using svg in Moodle 3.6.
                         if (has_capability('mod/hotquestion:rate', $context)) {
                             // Process priority column.
-                            $url = 'view.php?id=' . $this->hotquestion->cm->id . '&action=tpriority&u=1&q=' . $question->id;
+                            $url = 'view.php?id=' . $this->hotquestion->cm->id . '&action=tpriority&u=1&q=' . $question->id . $roundparam;
                             $tpriority .= '&nbsp;' . html_writer::link(
                                 $url,
                                 $this->pix_icon(
@@ -523,7 +533,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                                 ['class' => 'hotquestion_vote', 'id' => 'question_' . $question->id]
                             );
                             $tpriority .= '<br> &nbsp;';
-                            $url = 'view.php?id=' . $this->hotquestion->cm->id . '&action=tpriority&u=0&q=' . $question->id;
+                            $url = 'view.php?id=' . $this->hotquestion->cm->id . '&action=tpriority&u=0&q=' . $question->id . $roundparam;
                             $tpriority .= '&nbsp;&nbsp;' . html_writer::link(
                                 $url,
                                 $this->pix_icon(
@@ -548,7 +558,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                         // 20260324 Also suppress vote icons when viewing a past round.
                         if ($allowvote && $iscurrentround && $this->hotquestion->can_vote_on($question) && ($remaining >= 0)) {
                             if (!$this->hotquestion->has_voted($question->id) && ($remaining >= 1)) {
-                                $url = "view.php?id=" . $this->hotquestion->cm->id . "&action=vote&q=" . $question->id;
+                                $url = "view.php?id=" . $this->hotquestion->cm->id . "&action=vote&q=" . $question->id . $roundparam;
                                 $heat .= html_writer::link(
                                     $url,
                                     $this->pix_icon(
@@ -559,7 +569,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                                 );
                             } else if ($this->hotquestion->has_voted($question->id)) {
                                 // 20200608 Added remove vote capability.
-                                $url = "view.php?id=" . $this->hotquestion->cm->id . "&action=removevote&q=" . $question->id;
+                                $url = "view.php?id=" . $this->hotquestion->cm->id . "&action=removevote&q=" . $question->id . $roundparam;
                                 $heat .= html_writer::link(
                                     $url,
                                     $this->pix_icon(
@@ -587,7 +597,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                         ) {
                             // Process remove column.
                             // Added delete confirm 2/8/19.
-                            $url = 'view.php?id=' . $this->hotquestion->cm->id . '&action=remove&q=' . $question->id;
+                            $url = 'view.php?id=' . $this->hotquestion->cm->id . '&action=remove&q=' . $question->id . $roundparam;
                             $remove .= html_writer::link($url, $this->pix_icon(
                                 't/delete',
                                 get_string('questionremove', 'hotquestion')
@@ -600,7 +610,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                             // Process approval column.
                             // Show approval column.
                             if ($question->approved) {
-                                $url = 'view.php?id=' . $this->hotquestion->cm->id . '&action=approve&q=' . $question->id;
+                                $url = 'view.php?id=' . $this->hotquestion->cm->id . '&action=approve&q=' . $question->id . $roundparam;
                                 $approve .= html_writer::link(
                                     $url,
                                     $this->pix_icon(
@@ -610,7 +620,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                                     ['class' => 'hotquestion_vote', 'id' => 'question_' . $question->approved]
                                 );
                             } else {
-                                $url = 'view.php?id=' . $this->hotquestion->cm->id . '&action=approve&q=' . $question->id;
+                                $url = 'view.php?id=' . $this->hotquestion->cm->id . '&action=approve&q=' . $question->id . $roundparam;
                                 $approve .= html_writer::link(
                                     $url,
                                     $this->pix_icon(

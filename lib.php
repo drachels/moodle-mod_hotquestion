@@ -738,7 +738,11 @@ function hotquestion_comment_validate($commentparam) {
 
     $context = context_module::instance($cm->id);
 
-    if ($hotquestion->approval && !$record->approved && !has_capability('mod/hotquestion:manageentries', $context)) {
+    if (
+        empty($record->approved)
+        && !has_capability('mod/hotquestion:manageentries', $context)
+        && !has_capability('mod/hotquestion:rate', $context)
+    ) {
         throw new comment_exception('notapproved', 'hotquestion');
     }
 
@@ -787,6 +791,28 @@ function hotquestion_comment_validate($commentparam) {
  * @return array
  */
 function hotquestion_comment_permissions($commentparam) {
+    global $DB;
+
+    $canmoderatecomments = has_capability('mod/hotquestion:manageentries', $commentparam->context)
+        || has_capability('mod/hotquestion:rate', $commentparam->context);
+
+    if (!$question = $DB->get_record('hotquestion_questions', ['id' => $commentparam->itemid], 'id, hotquestion, time')) {
+        return ['post' => false, 'view' => false];
+    }
+    if (!$latestrounds = $DB->get_records('hotquestion_rounds', ['hotquestion' => $question->hotquestion],
+        'starttime DESC', 'id, starttime, endtime', 0, 1)) {
+        return ['post' => $canmoderatecomments, 'view' => true];
+    }
+
+    $latestround = reset($latestrounds);
+    $latestend = empty($latestround->endtime) ? 0xFFFFFFFF : (int)$latestround->endtime;
+    $iscurrentroundentry = ((int)$question->time >= (int)$latestround->starttime)
+        && ((int)$question->time <= $latestend);
+
+    if (!$iscurrentroundentry && !$canmoderatecomments) {
+        return ['post' => false, 'view' => true];
+    }
+
     return ['post' => true, 'view' => true];
 }
 
