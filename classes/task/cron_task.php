@@ -16,8 +16,6 @@
 
 namespace mod_hotquestion\task;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Main scheduled task for hotquestion notifications.
  *

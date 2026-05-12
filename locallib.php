@@ -391,11 +391,14 @@ class mod_hotquestion {
     /**
      * Return questions according to $currentround.
      *
-     * Sort order is priority descending, votecount descending,
-     * and time descending from most recent to oldest.
-     * @return all questions with vote count in current round.
+     * Default sort order is unchanged: approved descending, teacher priority descending,
+     * votecount descending, and time descending from most recent to oldest.
+     *
+     * @param string|null $sortby Optional sort key: question, tpriority, votecount.
+     * @param string|null $sortdir Optional sort direction: asc or desc.
+     * @return array all questions with vote count in current round.
      */
-    public function get_questions() {
+    public function get_questions($sortby = null, $sortdir = null) {
         global $DB;
 
         if ($this->currentround->endtime == 0) {
@@ -407,10 +410,23 @@ class mod_hotquestion {
             $this->currentround->starttime,
             $this->currentround->endtime,
         ];
-        $orderby = 'q.approved DESC, tpriority DESC, votecount DESC, q.time DESC';
+        $defaultorderby = 'q.approved DESC, tpriority DESC, votecount DESC, q.time DESC';
         if (!empty($this->instance->grade)) {
             // When whole-activity grading is enabled, do not sort by teacher priority.
-            $orderby = 'q.approved DESC, votecount DESC, q.time DESC';
+            $defaultorderby = 'q.approved DESC, votecount DESC, q.time DESC';
+        }
+
+        $orderby = $defaultorderby;
+        $sortmap = [
+            'question' => 'q.content',
+            'tpriority' => 'q.tpriority',
+            'votecount' => 'votecount',
+        ];
+        $sortkey = is_string($sortby) ? strtolower($sortby) : '';
+        $direction = (is_string($sortdir) && strtolower($sortdir) === 'asc') ? 'ASC' : 'DESC';
+        if (array_key_exists($sortkey, $sortmap)) {
+            // Keep default ordering as stable tie-breakers so row integrity/order remains predictable.
+            $orderby = $sortmap[$sortkey] . ' ' . $direction . ', ' . $defaultorderby;
         }
         // 20210306 Added format to the selection.
         return $DB->get_records_sql(

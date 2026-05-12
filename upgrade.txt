@@ -1,14 +1,6 @@
 This file describes changes in the Hot Question code.
 
 === Deferred to a later version. ===
-20200522 HotQuestion_486 - Need to update Behat tests for new remove confirmation.
-20200522 HotQuestion_488 - Need Groups and Priority added to Behat Tests.
-20200522 HotQuestion_489 - Need Behat Tests for Approval Testing.
-20210221 HotQuestion_640 - New capability request - sort order for questions.
-    20260322 Verified not fixed: question ordering remains hardcoded in
-        locallib.php get_questions() (ORDER BY approved, tpriority, votecount,
-        time) with no mod_form/settings option or capability-driven alternate
-        sort mode.
 20210325 HotQuestion_691 - Need to add to the documentation on Moodle.
     20260322 Verified not fixed: tracker status remains open and no repository
         changes indicate completion of the requested Moodle.org documentation
@@ -113,6 +105,25 @@ This file describes changes in the Hot Question code.
         "current/open" status is not a safe direct mutation in the existing
         time-window round model because historical question-to-round membership
         is derived from question timestamps and round start/end boundaries.
+20200522 HotQuestion_486bt - Need to update Behat tests for new remove confirmation.
+    20260512 Implemented focused coverage in
+        tests/behat/questions_remove_confirmation.feature to verify remove
+        confirmation wiring and remove flow.
+20200522 HotQuestion_488bt - Need Groups and Priority added to Behat Tests.
+    20260512 Implemented focused coverage in
+        tests/behat/questions_groups_priority.feature for group-filter
+        visibility checks and teacher priority action checks.
+20200522 HotQuestion_489bt - Need Behat Tests for Approval Testing.
+    20260512 Implemented focused approval workflow coverage in
+        tests/behat/questions_approval_workflow.feature (student hidden view,
+        teacher approval action, post-approval student visibility).
+20210221 HotQuestion_640bt - New capability request - sort order for questions.
+    20260512 Implemented: kept default question ordering unchanged while adding
+        per-user sortable heading toggles (Questions, Priority, Heat) with
+        asc/desc flip behavior and per-instance user preference persistence.
+    20260512 Implemented focused coverage in
+        tests/behat/questions_sorting_preferences.feature (default order,
+        asc/desc header toggles, per-user preference isolation).
 20210823 HotQuestion_750bt - It would be nice if users could record questions.
     20260509 Fixed: question submission now persists editor draft media/files
         (including recorded embeds) into mod_hotquestion question file area,

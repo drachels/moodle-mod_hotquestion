@@ -64,12 +64,26 @@ echo $OUTPUT->notification(get_string('round', 'hotquestion', $roundlabel), 'inf
 if (!empty($prevround) || !empty($nextround)) {
     $nav = '';
     if (!empty($prevround)) {
-        $prevurl = new moodle_url('/mod/hotquestion/whovoted.php', ['id' => $cm->id, 'round' => (int)$prevround->id]);
-        $nav .= html_writer::link($prevurl, get_string('previousround', 'hotquestion'), ['class' => 'btn btn-outline-secondary me-2']);
+        $prevurl = new moodle_url('/mod/hotquestion/whovoted.php', [
+            'id' => $cm->id,
+            'round' => (int)$prevround->id,
+        ]);
+        $nav .= html_writer::link(
+            $prevurl,
+            get_string('previousround', 'hotquestion'),
+            ['class' => 'btn btn-outline-secondary me-2']
+        );
     }
     if (!empty($nextround)) {
-        $nexturl = new moodle_url('/mod/hotquestion/whovoted.php', ['id' => $cm->id, 'round' => (int)$nextround->id]);
-        $nav .= html_writer::link($nexturl, get_string('nextround', 'hotquestion'), ['class' => 'btn btn-outline-secondary']);
+        $nexturl = new moodle_url('/mod/hotquestion/whovoted.php', [
+            'id' => $cm->id,
+            'round' => (int)$nextround->id,
+        ]);
+        $nav .= html_writer::link(
+            $nexturl,
+            get_string('nextround', 'hotquestion'),
+            ['class' => 'btn btn-outline-secondary']
+        );
     }
     if ($nav !== '') {
         echo html_writer::div($nav, 'mb-2');

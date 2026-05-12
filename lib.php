@@ -689,7 +689,7 @@ function hotquestion_pluginfile($course, $cm, $context, $filearea, $args, $force
     }
 
     $filename = array_pop($args);
-    $filepath = '/' . (empty($args) ? '' : implode('/', $args) . '/') ;
+    $filepath = '/' . (empty($args) ? '' : implode('/', $args) . '/');
 
     $fs = get_file_storage();
     $file = $fs->get_file($context->id, 'mod_hotquestion', 'question', $itemid, $filepath, $filename);
@@ -799,8 +799,16 @@ function hotquestion_comment_permissions($commentparam) {
     if (!$question = $DB->get_record('hotquestion_questions', ['id' => $commentparam->itemid], 'id, hotquestion, time')) {
         return ['post' => false, 'view' => false];
     }
-    if (!$latestrounds = $DB->get_records('hotquestion_rounds', ['hotquestion' => $question->hotquestion],
-        'starttime DESC', 'id, starttime, endtime', 0, 1)) {
+    if (
+        !$latestrounds = $DB->get_records(
+            'hotquestion_rounds',
+            ['hotquestion' => $question->hotquestion],
+            'starttime DESC',
+            'id, starttime, endtime',
+            0,
+            1
+        )
+    ) {
         return ['post' => $canmoderatecomments, 'view' => true];
     }
 

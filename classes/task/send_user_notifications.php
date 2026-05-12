@@ -16,8 +16,6 @@
 
 namespace mod_hotquestion\task;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Adhoc task to send per-entry hotquestion notifications.
  *

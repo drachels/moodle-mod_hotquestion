@@ -102,7 +102,6 @@ class mobile {
                     ];
                 }
             }
-
         }
 
         $roundid = isset($args['roundid']) ? (int)$args['roundid'] : -1;
@@ -503,7 +502,10 @@ JS;
                 'showrawgrade' => !empty($rawgrade),
                 'rawgrade' => $rawgrade,
                 'showviewgrades' => (($canmanageentries || $canrate || $canask) && ((int)$hotquestion->grade !== 0)),
-                'viewgradesurl' => (new \moodle_url('/mod/hotquestion/grades.php', ['id' => $cm->id, 'group' => $selectedgroup]))->out(false),
+                'viewgradesurl' => (new \moodle_url(
+                    '/mod/hotquestion/grades.php',
+                    ['id' => $cm->id, 'group' => $selectedgroup]
+                ))->out(false),
                 'shownewround' => ($canrate || $canmanageentries),
                 'showremoveround' => $canmanageentries,
                 'showprevround' => !empty($prevround),
@@ -664,6 +666,12 @@ JS;
         ];
     }
 
+    /**
+     * Determine the media type for inline attachment preview rendering.
+     *
+     * @param stored_file $file Attachment file.
+     * @return string Media type: video, audio, image, or empty string.
+     */
     private static function mobile_get_inline_attachment_media_type($file) {
         $mimetype = strtolower((string)$file->get_mimetype());
         if (strpos($mimetype, 'video/') === 0) {
@@ -690,6 +698,13 @@ JS;
         return '';
     }
 
+    /**
+     * Get a normalised MIME type for inline audio/video preview tags.
+     *
+     * @param stored_file $file Attachment file.
+     * @param string $mediatype Media type for preview.
+     * @return string MIME type or empty string if unknown.
+     */
     private static function mobile_get_inline_preview_mimetype($file, $mediatype) {
         $rawmimetype = strtolower(trim((string)$file->get_mimetype()));
         if ($mediatype === 'video' && strpos($rawmimetype, 'video/') === 0) {
@@ -729,6 +744,16 @@ JS;
         return '';
     }
 
+    /**
+     * Render inline preview markup for a supported attachment media type.
+     *
+     * @param string $mediatype Media type for rendering.
+     * @param string $filename Display name of the attachment.
+     * @param moodle_url $streamurl Stream URL for inline playback.
+     * @param moodle_url $downloadurl Fallback download URL.
+     * @param string $mimetype MIME type for source tag.
+     * @return string Rendered HTML or empty string.
+     */
     private static function mobile_render_inline_attachment_preview($mediatype, $filename, $streamurl, $downloadurl, $mimetype) {
         $stream = $streamurl->out(false);
         $fallback = \html_writer::link($downloadurl, get_string('download'));
@@ -776,6 +801,12 @@ JS;
         );
     }
 
+    /**
+     * Check whether an attachment is a WebM media file.
+     *
+     * @param stored_file $file Attachment file.
+     * @return bool True when file is WebM.
+     */
     private static function mobile_file_is_webm($file) {
         $mimetype = strtolower(trim((string)$file->get_mimetype()));
         if ($mimetype === 'video/webm' || $mimetype === 'audio/webm') {
@@ -786,11 +817,24 @@ JS;
         return $extension === 'webm';
     }
 
+    /**
+     * Strip embedded WebM video tags from entry text for mobile fallback display.
+     *
+     * @param string $html Entry text HTML.
+     * @return string Sanitised HTML without embedded WebM video tags.
+     */
     private static function mobile_strip_unplayable_embedded_webm($html) {
         $pattern = '~<video\b[^>]*>.*?\.webm(?:[^<\"\']*)?.*?</video>~is';
         return preg_replace($pattern, '', (string)$html);
     }
 
+    /**
+     * Determine whether entry text already references an attachment file.
+     *
+     * @param string $entrytext Entry text HTML.
+     * @param stored_file $file Attachment file.
+     * @return bool True when entry text contains a reference to the file.
+     */
     private static function mobile_entry_text_references_file($entrytext, $file) {
         $decodedtext = rawurldecode(html_entity_decode((string)$entrytext, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
         if ($decodedtext === '') {
