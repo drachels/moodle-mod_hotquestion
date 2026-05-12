@@ -124,6 +124,8 @@ This file describes changes in the Hot Question code.
     20260512 Mobile follow-up: added equivalent per-user sort toggles in the
         Moodle App mobile view (Questions/Priority/Heat as available),
         reusing the same per-instance sort preference keys.
+    20260512 Added PHPUnit coverage in tests/mobile_output_test.php to
+        verify mobile sorting preference persistence and question ordering.
     20260512 Implemented focused coverage in
         tests/behat/questions_sorting_preferences.feature (default order,
         asc/desc header toggles, per-user preference isolation).
