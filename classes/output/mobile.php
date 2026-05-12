@@ -54,6 +54,25 @@ class mobile {
         $canmanageentries = has_capability('mod/hotquestion:manageentries', $context);
         $canaccessallgroups = has_capability('moodle/site:accessallgroups', $context);
         $ismanagerorrater = $canmanageentries || $canrate;
+        $allowedsortkeys = ['question', 'tpriority', 'votecount'];
+        $sortbyprefkey = 'hotquestion_sortby' . $hotquestion->id;
+        $sortdirprefkey = 'hotquestion_sortdir' . $hotquestion->id;
+
+        $requestsortby = strtolower(clean_param((string)($args['sortby'] ?? ''), PARAM_ALPHA));
+        $requestsortdir = strtolower(clean_param((string)($args['sortdir'] ?? ''), PARAM_ALPHA));
+        if (in_array($requestsortby, $allowedsortkeys, true) && in_array($requestsortdir, ['asc', 'desc'], true)) {
+            set_user_preference($sortbyprefkey, $requestsortby);
+            set_user_preference($sortdirprefkey, $requestsortdir);
+        }
+
+        $sortby = strtolower((string)get_user_preferences($sortbyprefkey, ''));
+        $sortdir = strtolower((string)get_user_preferences($sortdirprefkey, 'desc'));
+        if (!in_array($sortby, $allowedsortkeys, true)) {
+            $sortby = '';
+        }
+        if (!in_array($sortdir, ['asc', 'desc'], true)) {
+            $sortdir = 'desc';
+        }
 
         $groupmode = groups_get_activity_groupmode($cm);
         $selectedgroup = array_key_exists('groupid', $args) ? (int)$args['groupid'] : groups_get_activity_group($cm, true);
@@ -180,7 +199,7 @@ class mobile {
         $teacherpriorityvisibility = !empty($hotquestion->teacherpriorityvisibility);
         $heatvisibility = ((int)$hotquestion->heatlimit !== 0) && !empty($hotquestion->heatvisibility);
         $remainingvotes = (int)$hq->heat_tally($hq, $USER->id);
-        $questions = $hq->get_questions();
+        $questions = $hq->get_questions($sortby ?: null, $sortdir);
         $fs = get_file_storage();
         $questionitems = [];
 
@@ -356,6 +375,57 @@ class mobile {
 
         $prevround = $hq->get_prevround();
         $nextround = $hq->get_nextround();
+        $roundarg = !empty($hq->get_currentround()->id) ? (int)$hq->get_currentround()->id : -1;
+
+        $buildsortablemobileheading = function (
+            string $label,
+            string $key
+        ) use (
+            $sortby,
+            $sortdir,
+            $cm,
+            $course,
+            $selectedgroup,
+            $roundarg
+        ) {
+            $nextdir = ($sortby === $key && $sortdir === 'asc') ? 'desc' : 'asc';
+            $indicator = '';
+            if ($sortby === $key) {
+                $indicator = ($sortdir === 'asc')
+                    ? get_string('sortindicatorasc', 'hotquestion')
+                    : get_string('sortindicatordesc', 'hotquestion');
+            }
+
+            return [
+                'label' => $label,
+                'key' => $key,
+                'active' => ($sortby === $key),
+                'nextdir' => $nextdir,
+                'indicator' => $indicator,
+                'cmid' => (int)$cm->id,
+                'courseid' => (int)$course->id,
+                'groupid' => (int)$selectedgroup,
+                'roundid' => (int)$roundarg,
+            ];
+        };
+
+        $sortoptions = [];
+        $sortoptions[] = $buildsortablemobileheading(
+            clean_param(format_text($hotquestion->questionlabel, FORMAT_MOODLE), PARAM_TEXT),
+            'question'
+        );
+        if ($teacherpriorityvisibility) {
+            $sortoptions[] = $buildsortablemobileheading(
+                clean_param(format_text($hotquestion->teacherprioritylabel, FORMAT_MOODLE), PARAM_TEXT),
+                'tpriority'
+            );
+        }
+        if ($heatvisibility) {
+            $sortoptions[] = $buildsortablemobileheading(
+                clean_param(format_text($hotquestion->heatlabel, FORMAT_MOODLE), PARAM_TEXT),
+                'votecount'
+            );
+        }
 
         $js = <<<'JS'
 var self = this;
@@ -495,6 +565,8 @@ JS;
             'canask'       => $canask && $isopen,
                 'canattachments' => $canask && $isopen,
             'allowanonymous' => !empty($hotquestion->anonymouspost),
+            'sortoptions' => $sortoptions,
+            'hassortoptions' => !empty($sortoptions),
             'showgroupselector' => !empty($groupoptions),
             'groupoptions' => $groupoptions,
             'selectedgroupid' => (int)$selectedgroup,

@@ -37,6 +37,29 @@
         </details>
     {{/showgroupselector}}
 
+    {{#hassortoptions}}
+        <details class="ion-margin-bottom" style="border: 1px solid #ddd; border-radius: 8px; padding: 6px 10px; background: #fff;">
+            <summary style="cursor: pointer; font-size: 14px; color: #333;">
+                {{#str}}hotquestionmobilesort, mod_hotquestion{{/str}}
+            </summary>
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+                {{#sortoptions}}
+                    <ion-button
+                        size="small"
+                        {{#active}}color="primary"{{/active}}
+                        {{^active}}fill="outline"{{/active}}
+                        core-site-plugins-new-content
+                        title="{{label}}{{indicator}}"
+                        component="mod_hotquestion"
+                        method="mobile_course_view"
+                        [args]="{cmid: '{{cmid}}', courseid: '{{courseid}}', groupid: '{{groupid}}', roundid: '{{roundid}}', sortby: '{{key}}', sortdir: '{{nextdir}}'}">
+                        {{label}}{{indicator}}
+                    </ion-button>
+                {{/sortoptions}}
+            </div>
+        </details>
+    {{/hassortoptions}}
+
     {{#canask}}
         <ion-card>
             <ion-card-content>

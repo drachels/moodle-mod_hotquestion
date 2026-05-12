@@ -144,6 +144,7 @@ $string['hotquestionmobilenoask'] = 'Asking questions is not currently available
 $string['hotquestionmobileopenbrowser'] = 'Open full activity in browser';
 $string['hotquestionmobilepostanon'] = 'Post anonymously';
 $string['hotquestionmobilesaved'] = 'Question submitted';
+$string['hotquestionmobilesort'] = 'Sort questions';
 $string['hotquestionmobilesubmit'] = 'Submit Question';
 $string['hotquestionmobilewebmhint'] = 'This recording may not play inline on some phones. Open the file link to view it.';
 $string['hotquestionname'] = 'Activity Name';
