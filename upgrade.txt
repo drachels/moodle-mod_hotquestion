@@ -29,11 +29,6 @@ This file describes changes in the Hot Question code.
 20230120 HotQuestion_995 - The grade table needs more info included in the download. 
     Some items (3) have been done. Still have others (3) to do. Listed in
     section for v4.2.4, but without resolution details.
-20230308 HotQuestion_1018 - Need to see about adding tags to question entries.
-    20260322 Verified not fixed: no tag support exists anywhere in the plugin;
-        no FEATURE_TAGS, core_tag, tag_area, or tag_set references found; the
-        in-progress resolution notes blocking difficulty obtaining $newentry->id
-        at insertion time in results.php.
 20230523 HotQuestion_1047 - Need to investigate creating a Grade Me plugin
     for Hot Question for teacher priority is required.
     20260322 Verified not fixed: no Grade Me integration exists; no grademe/
@@ -52,20 +47,53 @@ This file describes changes in the Hot Question code.
         external Grade Me plugin integration and current demand does not justify
         implementation work right now.
 20231201 HotQuestion_1123 - Allow the 'submit your question' text area to be plain
-    text #61. 20231201 Started investigating how to do this. Listed in v4.2.4
-    section, but without resolution details, if any.
+    text #61. 
+    20231201 Started investigating how to do this. Listed in v4.2.4
+        section, but without resolution details, if any.
 
-=== 5.1.0 === pending
-20200522 HotQuestion_478bt - Need to add more info to events.
+
+=== 5.1.1 === pending
+20230308 HotQuestion_1018bt - Need to see about adding tags to question entries.
+    20260516 Implemented (bt): added per-question tagging support using
+        mod_hotquestion/hotquestion_questions tag area, including submit-form
+        tag input, tag persistence on question save, question tag display in
+        the list view, tag-index callback support, and tag cleanup on question
+        delete/reset paths.
+    20260516 Follow-up fix: added missing tagarea_hotquestion_questions
+        language string and resolved tag-index whoops by changing
+        mod/jplayer/lib.php to require its local locallib.php via __DIR__.
+20260514 HotQuestion_1480bt - Remove deprecated FEATURE_GROUPMEMBERSONLY support.
+    20260516 Verified fixed: removed FEATURE_GROUPMEMBERSONLY handling from
+        hotquestion_supports() in lib.php while keeping FEATURE_GROUPS and
+        FEATURE_GROUPINGS behavior unchanged for supported Moodle.org versions.
+20260516  HotQuestion_1483bt - Fixing Code prechecks in v5.1.0 release.
+    20260516 Precheck cleanup: removed obsolete module.js, moved 
+        mobile_output_test.php to tests/output, added mobile_view mustache
+        example context, and switched mobile_submit_question bindings to XML-safe
+        bind/on syntax.
+20260518 HotQuestion_1487 - Issue #126 Notifications feature - generates
+    thousands of emails in big sites.
+    20260518 Fixed: notifications now use a per-activity
+        notificationsenabledtime baseline so only questions created after
+        notifications are enabled for that Hot Question can queue email/digest
+        tasks. Upgrade sets the baseline for already-enabled activities and
+        marks older rows as mailed to prevent legacy backlog floods. Added
+        cron_task_test.php regression coverage; focused PHPUnit slice passed.
+
+=== 5.1.0 === 20260516
+20200522 Converted TRK1_142 to HotQuestion_485r, Activity heading does not
+    include help. Did not add help as it seems to be deprecated. This ticket
+    is orignally included in the v3.8.2 section.
+20200522 HotQuestion_478r - Need to add more info to events.
     20260510 Fixed (bt): enriched active event payloads and descriptions to
         log concrete object ids and context (question id, round id,
         hotquestion id, related user, export scope) for add/remove vote,
         add/remove question, add/remove round, and download actions.
-20200522 HotQuestion_480bt - Round info is not in the CSV download.
+20200522 HotQuestion_480r - Round info is not in the CSV download.
     20260510 Fixed (bt): added a Round ID column to question CSV export,
         including SQL round mapping via hotquestion_rounds time ranges and
         output updates for both admin and teacher/manager export modes.
-20200522 HotQuestion_482bt - Need Who Voted toolbutton.
+20200522 HotQuestion_482r - Need Who Voted toolbutton.
     20260510 Fixed (bt): added a Who Voted toolbutton to the HotQuestion
         toolbar and implemented a dedicated whovoted.php report page that
         lists current-round questions with their voter names for users with
@@ -74,7 +102,7 @@ This file describes changes in the Hot Question code.
         whovoted.php and switched voter-name lookup to the full Moodle name
         field set (firstname/lastname plus phonetic/middle/alternate fields)
         so previous-round checks work and fullname() no longer throws notices.
-20200522 HotQuestion_483bt - Investigate making old round the current round.
+20200522 HotQuestion_483r - Investigate making old round the current round.
     20260510 Investigated current behavior and implemented a safe practical
         fix: while viewing a historical round, question-level action links
         (priority, remove, approve, vote/remove-vote where shown) now keep the
@@ -105,19 +133,19 @@ This file describes changes in the Hot Question code.
         "current/open" status is not a safe direct mutation in the existing
         time-window round model because historical question-to-round membership
         is derived from question timestamps and round start/end boundaries.
-20200522 HotQuestion_486bt - Need to update Behat tests for new remove confirmation.
+20200522 HotQuestion_486r - Need to update Behat tests for new remove confirmation.
     20260512 Implemented focused coverage in
         tests/behat/questions_remove_confirmation.feature to verify remove
         confirmation wiring and remove flow.
-20200522 HotQuestion_488bt - Need Groups and Priority added to Behat Tests.
+20200522 HotQuestion_488r - Need Groups and Priority added to Behat Tests.
     20260512 Implemented focused coverage in
         tests/behat/questions_groups_priority.feature for group-filter
         visibility checks and teacher priority action checks.
-20200522 HotQuestion_489bt - Need Behat Tests for Approval Testing.
+20200522 HotQuestion_489r - Need Behat Tests for Approval Testing.
     20260512 Implemented focused approval workflow coverage in
         tests/behat/questions_approval_workflow.feature (student hidden view,
         teacher approval action, post-approval student visibility).
-20210221 HotQuestion_640bt - New capability request - sort order for questions.
+20210221 HotQuestion_640r - New capability request - sort order for questions.
     20260512 Implemented: kept default question ordering unchanged while adding
         per-user sortable heading toggles (Questions, Priority, Heat) with
         asc/desc flip behavior and per-instance user preference persistence.
@@ -129,7 +157,7 @@ This file describes changes in the Hot Question code.
     20260512 Implemented focused coverage in
         tests/behat/questions_sorting_preferences.feature (default order,
         asc/desc header toggles, per-user preference isolation).
-20210823 HotQuestion_750bt - It would be nice if users could record questions.
+20210823 HotQuestion_750r - It would be nice if users could record questions.
     20260509 Fixed: question submission now persists editor draft media/files
         (including recorded embeds) into mod_hotquestion question file area,
         serves them via hotquestion_pluginfile(), and renders them from
@@ -138,7 +166,7 @@ This file describes changes in the Hot Question code.
         call in view.php submit flow (which expected a missing content_editor
         field and raised ErrorException) with draft-area save logic matching
         the actual text_editor form data structure.
-20220421 HotQuestion_844bt - The Moodle Mobile app is not supported.
+20220421 HotQuestion_844r - The Moodle Mobile app is not supported.
     20260509 Fixed (baseline): added Moodle App integration via db/mobile.php,
         classes/output/mobile.php, and template mobileapp/mobile_view for
         authenticated in-app rendering of activity intro and question list.
@@ -191,7 +219,7 @@ This file describes changes in the Hot Question code.
         and changed the View Grades toolbar button to use core-link
         capture=false so it opens the grades page in the in-app browser
         rather than triggering the raw-URL fallback.
-20251020 HotQuestion_1384bt - feature request for notifications.
+20251020 HotQuestion_1384r - feature request for notifications.
     20260322 Verified not fixed: classes/task/cron_task.php queues
         \mod_hotquestion\task\send_user_notifications and
         \mod_hotquestion\task\send_user_digests, but the task file is misnamed
@@ -215,10 +243,10 @@ This file describes changes in the Hot Question code.
         requirement confirmed: use php83 for Moodle CLI on moodledev. Email
         processor was enabled and SMTP path validated (AUTH/RCPT/DATA accepted);
         teacher notification emails were received in live testing.
-20260502 HotQuestion_1476bt - Issue #123 on github Detect button::BODY_OUTLINE reliably.
+20260502 HotQuestion_1476r - Issue #123 on github Detect button::BODY_OUTLINE reliably.
     2026050701 Merged pull request on github and the fetched to local. Saved original v5.0.0
     and new fetched version.
-20260502 HotQuestion_1477bt - HotQuestion - Microsoft SQL Server Issues #124 and #125
+20260502 HotQuestion_1477r - HotQuestion - Microsoft SQL Server Issues #124 and #125
     pull request.
     2026050701 Merged pull request on github and the fetched to local. Saved original v5.0.0
     and new fetched version.

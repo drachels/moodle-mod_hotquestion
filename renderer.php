@@ -497,6 +497,14 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                         $attachmentshtml .= html_writer::end_div();
                     }
                 }
+                $questiontags = '';
+                if (core_tag_tag::is_enabled('mod_hotquestion', 'hotquestion_questions')) {
+                    $questiontags = $this->output->tag_list(
+                        core_tag_tag::get_item_tags('mod_hotquestion', 'hotquestion_questions', $question->id),
+                        null,
+                        'hotquestion-tags'
+                    );
+                }
                 $user = $DB->get_record('user', ['id' => $question->userid]);
                 // If groups is set to all participants or matches current group, show the question.
                 if ((! $groups) || (groups_is_member($groups, $user->id))) {
@@ -559,7 +567,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                         }
 
                         // Rating and comments should go in next line after authorinfo.
-                        $line[] = $content . $attachmentshtml . $authorinfo . $comment;
+                        $line[] = $content . $attachmentshtml . $questiontags . $authorinfo . $comment;
                         $roundparam = '&round=' . (int)$this->hotquestion->get_currentround()->id;
 
                         // Get current priority value to show.

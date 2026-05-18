@@ -74,6 +74,9 @@ class restore_hotquestion_activity_structure_step extends restore_activity_struc
 
         $data->timecreated = $this->apply_date_offset($data->timecreated);
         $data->timemodified = $this->apply_date_offset($data->timemodified);
+        if (!property_exists($data, 'notificationsenabledtime')) {
+            $data->notificationsenabledtime = !empty($data->notifications) ? time() : 0;
+        }
 
         // Insert the hotquestion record.
         $newitemid = $DB->insert_record('hotquestion', $data);

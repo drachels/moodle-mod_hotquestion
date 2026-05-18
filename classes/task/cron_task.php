@@ -127,7 +127,9 @@ class cron_task extends \core\task\scheduled_task {
                   JOIN {hotquestion} hq ON hq.id = hqq.hotquestion
                  WHERE hqq.mailed = 0
                    AND hqq.time <= :cutoff
-                   AND hq.notifications = 1";
+                   AND hq.notifications = 1
+                   AND hq.notificationsenabledtime > 0
+                   AND hqq.time >= hq.notificationsenabledtime";
         $this->log($sql, 1);
 
         return $DB->get_records_sql($sql, ['cutoff' => $cutoff]);

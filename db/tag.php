@@ -15,23 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the version of hotquestion.
- *
- * This code fragment is called by moodle_needs_upgrading() and
- * /admin/index.php
+ * Tag areas in component mod_hotquestion.
  *
  * @package   mod_hotquestion
- * @copyright 2011 Sun Zhigang
- * @copyright 2016 onwards AL Rachels drachels@drachels.com
+ * @copyright 2026 AL Rachels <drachels@drachels.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2026051800; // The current module version (Date: YYYYMMDDXX).
-$plugin->requires = 2021122100; // Requires Moodle 3.11 version.
-$plugin->cron = 60; // Period for cron to check this module (secs).
-$plugin->component = 'mod_hotquestion';
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = "5.1.1 (Build: 2026051800)"; // User-friendly version number.
-$plugin->supported = [405, 501];
+$tagareas = [
+    [
+        'itemtype' => 'hotquestion_questions',
+        'component' => 'mod_hotquestion',
+        'callback' => 'mod_hotquestion_get_tagged_questions',
+        'callbackfile' => '/mod/hotquestion/locallib.php',
+    ],
+];

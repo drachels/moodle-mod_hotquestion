@@ -92,6 +92,7 @@ class backup_hotquestion_activity_structure_step extends backup_activity_structu
                 'completionvote',
                 'completionpass',
                 'notifications',
+                'notificationsenabledtime',
             ]
         );
 

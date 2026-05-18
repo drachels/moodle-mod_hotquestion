@@ -48,6 +48,7 @@ function hotquestion_add_instance($hotquestion) {
     require_once($CFG->dirroot . '/mod/hotquestion/locallib.php');
 
     $hotquestion->timecreated = time();
+    $hotquestion->notificationsenabledtime = !empty($hotquestion->notifications) ? $hotquestion->timecreated : 0;
     // Fixed instance error 02/15/19.
     $hotquestion->id = $DB->insert_record('hotquestion', $hotquestion);
 
@@ -96,11 +97,26 @@ function hotquestion_update_instance($hotquestion) {
     $courseid = $hotquestion->course;
 
     $hotquestion->id = $hotquestion->instance;
+    $existinghotquestion = $DB->get_record(
+        'hotquestion',
+        ['id' => $hotquestion->instance],
+        'id, notifications, notificationsenabledtime',
+        MUST_EXIST
+    );
 
     $context = context_module::instance($cmid);
 
     $hotquestion->timemodified = time();
     $hotquestion->id = $hotquestion->instance;
+    if (!empty($hotquestion->notifications)) {
+        if (empty($existinghotquestion->notifications) || empty($existinghotquestion->notificationsenabledtime)) {
+            $hotquestion->notificationsenabledtime = $hotquestion->timemodified;
+        } else {
+            $hotquestion->notificationsenabledtime = (int)$existinghotquestion->notificationsenabledtime;
+        }
+    } else {
+        $hotquestion->notificationsenabledtime = 0;
+    }
 
     // Contrib by ecastro ULPGC.
     // Check if grades need recalculation due to changed factor(s).
@@ -244,6 +260,10 @@ function reset_instance($hotquestionid, array $resetoptions = []) {
             ) {
                 return false;
             }
+        }
+
+        if ($resetoptions['questions']) {
+            core_tag_tag::remove_all_item_tags('mod_hotquestion', 'hotquestion_questions', $question->id);
         }
     }
 
@@ -570,7 +590,6 @@ function hotquestion_reset_course_form_defaults($course) {
  * @uses FEATURE_GRADE_OUTCOMES
  * @uses FEATURE_GROUPS
  * @uses FEATURE_GROUPINGS
- * @uses FEATURE_GROUPMEMBERSONLY
  * @uses FEATURE_MOD_INTRO
  * @uses FEATURE_RATE
  * @uses FEATURE_SHOW_DESCRIPTION
@@ -601,8 +620,6 @@ function hotquestion_supports($feature) {
         case FEATURE_GROUPS:
             return true;
         case FEATURE_GROUPINGS:
-            return true;
-        case FEATURE_GROUPMEMBERSONLY:
             return true;
         case FEATURE_MOD_INTRO:
             return true;

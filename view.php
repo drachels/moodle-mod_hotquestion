@@ -127,6 +127,11 @@ if (!$ajax) {
 
 require_capability('mod/hotquestion:view', $context);
 
+if (core_tag_tag::is_enabled('mod_hotquestion', 'hotquestion_questions') === null) {
+    core_tag_area::reset_definitions_for_component('mod_hotquestion');
+}
+$questiontagsenabled = core_tag_tag::is_enabled('mod_hotquestion', 'hotquestion_questions');
+
 $minquestionsview = (int)($hq->instance->minquestionsview ?? 0);
 $maxquestionsperuser = (int)($hq->instance->maxquestionsperuser ?? 0);
 $viewinghistoricalround = ($hq->get_nextround() !== null);
@@ -229,6 +234,17 @@ if ($canpostentries) {
             $newentry->content
         );
         $DB->set_field('hotquestion_questions', 'content', $processedcontent, ['id' => $questionid]);
+
+        if ($questiontagsenabled) {
+            $questiontags = $fromform->tags ?? [];
+            core_tag_tag::set_item_tags(
+                'mod_hotquestion',
+                'hotquestion_questions',
+                $questionid,
+                $context,
+                $questiontags
+            );
+        }
 
         if (!$ajax) {
             redirect($returnurl, get_string('questionsubmitted', 'hotquestion'));

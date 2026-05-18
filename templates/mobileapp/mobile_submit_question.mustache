@@ -29,13 +29,13 @@
             {{#canedit}}
                 <div style="margin-bottom: 15px;">
                     <core-rich-text-editor
-                        [control]="textControl"
+                        bind-control="textControl"
                         name="mod_hotquestion_content"
                         component="mod_hotquestion"
-                        [componentId]="CONTENT_OTHERDATA.cmid"
+                        bind-componentId="CONTENT_OTHERDATA.cmid"
                         contextLevel="module"
-                        [contextInstanceId]="CONTENT_OTHERDATA.cmid"
-                        [draftExtraParams]="{itemid: CONTENT_OTHERDATA.itemid}"
+                        bind-contextInstanceId="CONTENT_OTHERDATA.cmid"
+                        bind-draftExtraParams="{itemid: CONTENT_OTHERDATA.itemid}"
                         placeholder="{{#str}}postbutton, mod_hotquestion{{/str}}">
                     </core-rich-text-editor>
                 </div>
@@ -45,7 +45,7 @@
                         <ion-label>{{#str}}hotquestionmobilepostanon, mod_hotquestion{{/str}}</ion-label>
                         <ion-toggle
                             slot="end"
-                            [(ngModel)]="CONTENT_OTHERDATA.anonymous">
+                            bindon-ngModel="CONTENT_OTHERDATA.anonymous">
                         </ion-toggle>
                     </ion-item>
                 {{/allowanonymous}}
@@ -53,8 +53,8 @@
                 <div class="ion-margin-top">
                     <ion-button
                         expand="block"
-                        [disabled]="isSaving"
-                        (click)="saveQuestion()">
+                        bind-disabled="isSaving"
+                        on-click="saveQuestion()">
                         {{#str}}hotquestionmobilesubmit, mod_hotquestion{{/str}}
                     </ion-button>
 

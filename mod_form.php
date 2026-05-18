@@ -470,6 +470,19 @@ class hotquestion_form extends moodleform {
         );
         $mform->setType('text_editor', PARAM_RAW);
 
+        // Ensure tag area definitions are registered when code is deployed before plugin upgrade hooks run.
+        if (core_tag_tag::is_enabled('mod_hotquestion', 'hotquestion_questions') === null) {
+            core_tag_area::reset_definitions_for_component('mod_hotquestion');
+        }
+
+        if (core_tag_tag::is_enabled('mod_hotquestion', 'hotquestion_questions')) {
+            $mform->addElement('header', 'tagshdr', get_string('tags', 'tag'));
+            $mform->addElement('tags', 'tags', null, [
+                'itemtype' => 'hotquestion_questions',
+                'component' => 'mod_hotquestion',
+            ]);
+        }
+
         $mform->addElement('hidden', 'id', $cm->id, 'id="hotquestion_courseid"');
         $mform->setType('id', PARAM_INT);
 

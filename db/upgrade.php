@@ -692,5 +692,56 @@ function xmldb_hotquestion_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2026032400, 'hotquestion');
     }
 
+    if ($oldversion < 2026051800) {
+        // Define field notificationsenabledtime to be added to hotquestion.
+        $table = new xmldb_table('hotquestion');
+        $field = new xmldb_field(
+            'notificationsenabledtime',
+            XMLDB_TYPE_INTEGER,
+            '10',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'notifications'
+        );
+
+        // Conditionally launch add field notificationsenabledtime.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Existing activities with notifications enabled should only notify for future questions.
+        $baseline = time();
+        $DB->set_field_select(
+            'hotquestion',
+            'notificationsenabledtime',
+            $baseline,
+            'notifications = ? AND notificationsenabledtime = ?',
+            [1, 0]
+        );
+
+        // Mark all entries older than the new per-activity baseline as already handled.
+        $instances = $DB->get_records_select(
+            'hotquestion',
+            'notifications = ? AND notificationsenabledtime > ?',
+            [1, 0],
+            '',
+            'id, notificationsenabledtime'
+        );
+        foreach ($instances as $instance) {
+            $DB->set_field_select(
+                'hotquestion_questions',
+                'mailed',
+                1,
+                'hotquestion = ? AND mailed = ? AND time < ?',
+                [(int)$instance->id, 0, (int)$instance->notificationsenabledtime]
+            );
+        }
+
+        // Hotquestion savepoint reached.
+        upgrade_mod_savepoint(true, 2026051800, 'hotquestion');
+    }
+
     return true;
 }

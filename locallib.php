@@ -501,6 +501,7 @@ class mod_hotquestion {
             $users = $this->get_question_voters($questionid);
             $users[] = $dbquestion->userid;
             // Contrib by ecastro ULPGC.
+            core_tag_tag::remove_all_item_tags('mod_hotquestion', 'hotquestion_questions', $dbquestion->id);
             $DB->delete_records('hotquestion_questions', ['id' => $dbquestion->id]);
             // 20220510 Deleted $dbvote line of code.
             // Delete all votes on the question that was just deleted.
@@ -574,6 +575,7 @@ class mod_hotquestion {
                 $users = $this->get_question_voters($questionid);
                 $users[] = $dbquestion->userid;
                 // Contrib by ecastro ULPGC.
+                core_tag_tag::remove_all_item_tags('mod_hotquestion', 'hotquestion_questions', $dbquestion->id);
                 $DB->delete_records('hotquestion_questions', ['id' => $dbquestion->id]);
                 // Get an array of all votes on the question that was just deleted, then delete them.
                 $dbvote = $DB->get_records('hotquestion_votes', ['question' => $questionid]);
@@ -1121,4 +1123,145 @@ class mod_hotquestion {
 
         $completion->set_module_viewed($this->cm);
     }
+}
+
+/**
+ * Returns hotquestion entries tagged with a specified tag.
+ *
+ * @param core_tag_tag $tag
+ * @param bool $exclusivemode
+ * @param int $fromctx
+ * @param int $ctx
+ * @param bool $rec
+ * @param int $page
+ * @return \core_tag\output\tagindex|null
+ */
+function mod_hotquestion_get_tagged_questions($tag, $exclusivemode = false, $fromctx = 0, $ctx = 0, $rec = 1, $page = 0) {
+    global $OUTPUT, $USER;
+
+    $perpage = $exclusivemode ? 20 : 5;
+    $ctxselect = context_helper::get_preload_record_columns_sql('ctx');
+    $query = "SELECT hqq.id, hqq.content, hqq.format, hqq.userid, hqq.approved,
+                    cm.id AS cmid, c.id AS courseid, c.shortname, c.fullname, $ctxselect
+                FROM {hotquestion_questions} hqq
+                JOIN {hotquestion} hq ON hq.id = hqq.hotquestion
+                JOIN {modules} m ON m.name='hotquestion'
+                JOIN {course_modules} cm ON cm.module = m.id AND cm.instance = hq.id
+                JOIN {tag_instance} tt ON hqq.id = tt.itemid
+                JOIN {course} c ON cm.course = c.id
+                JOIN {context} ctx ON ctx.instanceid = cm.id AND ctx.contextlevel = :coursemodulecontextlevel
+               WHERE tt.itemtype = :itemtype AND tt.tagid = :tagid AND tt.component = :component
+                 AND cm.deletioninprogress = 0
+                 AND hqq.id %ITEMFILTER% AND c.id %COURSEFILTER%";
+
+    $params = [
+        'itemtype' => 'hotquestion_questions',
+        'tagid' => $tag->id,
+        'component' => 'mod_hotquestion',
+        'coursemodulecontextlevel' => CONTEXT_MODULE,
+    ];
+
+    if ($ctx) {
+        $context = context::instance_by_id($ctx);
+        $query .= $rec ? ' AND (ctx.id = :contextid OR ctx.path LIKE :path)' : ' AND ctx.id = :contextid';
+        $params['contextid'] = $context->id;
+        $params['path'] = $context->path . '/%';
+    }
+
+    $query .= ' ORDER BY ';
+    if ($fromctx) {
+        $fromcontext = context::instance_by_id($fromctx);
+        $query .= ' (CASE WHEN ctx.id = :fromcontextid OR ctx.path LIKE :frompath THEN 0 ELSE 1 END),';
+        $params['fromcontextid'] = $fromcontext->id;
+        $params['frompath'] = $fromcontext->path . '/%';
+    }
+    $query .= ' c.sortorder, cm.id, hqq.id';
+
+    $totalpages = $page + 1;
+    $builder = new core_tag_index_builder(
+        'mod_hotquestion',
+        'hotquestion_questions',
+        $query,
+        $params,
+        $page * $perpage,
+        $perpage + 1
+    );
+
+    while ($item = $builder->has_item_that_needs_access_check()) {
+        context_helper::preload_from_record($item);
+        $courseid = $item->courseid;
+        if (!$builder->can_access_course($courseid)) {
+            $builder->set_accessible($item, false);
+            continue;
+        }
+        $modinfo = get_fast_modinfo($builder->get_course($courseid));
+        $builder->walk(function($taggeditem) use ($courseid, $modinfo, $builder) {
+            if ((int)$taggeditem->courseid === (int)$courseid) {
+                $accessible = false;
+                if (($cm = $modinfo->get_cm($taggeditem->cmid)) && $cm->uservisible) {
+                    $accessible = has_capability('mod/hotquestion:view', context_module::instance($cm->id));
+                }
+                $builder->set_accessible($taggeditem, $accessible);
+            }
+        });
+    }
+
+    $items = $builder->get_items();
+    if (count($items) > $perpage) {
+        $totalpages = $page + 2;
+        array_pop($items);
+    }
+
+    if ($items) {
+        $tagfeed = new core_tag\output\tagfeed();
+        foreach ($items as $item) {
+            $context = context_module::instance($item->cmid);
+            $canmanage = has_capability('mod/hotquestion:manageentries', $context)
+                || has_capability('mod/hotquestion:rate', $context);
+
+            // Keep unapproved entries visible to managers/raters and entry owner only.
+            if (!(int)$item->approved && !$canmanage && ((int)$item->userid !== (int)$USER->id)) {
+                continue;
+            }
+
+            context_helper::preload_from_record($item);
+            $modinfo = get_fast_modinfo($item->courseid);
+            $cm = $modinfo->get_cm($item->cmid);
+            $pageurl = new moodle_url('/mod/hotquestion/view.php', ['id' => $item->cmid]);
+
+            $preview = trim(strip_tags(format_text($item->content, $item->format, ['context' => $context, 'para' => false])));
+            if (core_text::strlen($preview) > 200) {
+                $preview = core_text::substr($preview, 0, 200) . '...';
+            }
+            if ($preview === '') {
+                $preview = get_string('modulename', 'hotquestion');
+            }
+
+            $pagename = format_string($preview, true, ['context' => $context]);
+            $pagename = html_writer::link($pageurl, $pagename);
+            $courseurl = course_get_url($item->courseid, $cm->sectionnum);
+            $cmname = html_writer::link($cm->url, $cm->get_formatted_name());
+            $coursename = format_string($item->fullname, true, ['context' => context_course::instance($item->courseid)]);
+            $coursename = html_writer::link($courseurl, $coursename);
+            $icon = html_writer::link($pageurl, html_writer::empty_tag('img', ['src' => $cm->get_icon_url()]));
+            $tagfeed->add($icon, $item->id . ' ' . $pagename, $cmname . '<br>' . $coursename);
+        }
+
+        $content = $OUTPUT->render_from_template('core_tag/tagfeed', $tagfeed->export_for_template($OUTPUT));
+
+        return new core_tag\output\tagindex(
+            $tag,
+            'mod_hotquestion',
+            'hotquestion_questions',
+            $content,
+            $exclusivemode,
+            $fromctx,
+            $ctx,
+            $rec,
+            $page,
+            $totalpages
+        );
+    }
+
+    return null;
 }

@@ -150,6 +150,7 @@ $string['hotquestionmobilewebmhint'] = 'This recording may not play inline on so
 $string['hotquestionname'] = 'Activity Name';
 $string['hotquestionopen'] = 'This activity will be open on {$a}.';
 $string['hotquestionopentime'] = 'Open time';
+$string['tagarea_hotquestion_questions'] = 'HotQuestion tags';
 $string['id'] = 'ID';
 $string['improperuseviewgradesclass'] = 'Improper use of the viewgrades class. Cannot load the grade item.';
 $string['incorrectmodule'] = 'Course Module ID was incorrect';
