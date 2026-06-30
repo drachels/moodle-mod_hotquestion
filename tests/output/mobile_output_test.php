@@ -83,7 +83,7 @@ final class mobile_output_test extends \advanced_testcase {
 
         $this->assertNotFalse($defaultalphapos);
         $this->assertNotFalse($defaultzulupos);
-        $this->assertLessThan($defaultalphapos, $defaultzulupos);
+        $this->assertLessThan($defaultzulupos, $defaultalphapos);
 
         $sortedresult = mobile::mobile_course_view([
             'cmid' => (int)$module->cmid,
@@ -98,7 +98,7 @@ final class mobile_output_test extends \advanced_testcase {
 
         $this->assertNotFalse($sortedalphapos);
         $this->assertNotFalse($sortedzulupos);
-        $this->assertLessThan($sortedalphapos, $sortedzulupos);
+        $this->assertLessThan($sortedzulupos, $sortedalphapos);
 
         $sortbyprefkey = 'hotquestion_sortby' . $module->id;
         $sortdirprefkey = 'hotquestion_sortdir' . $module->id;
