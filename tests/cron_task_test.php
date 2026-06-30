@@ -16,8 +16,6 @@
 
 namespace mod_hotquestion;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Tests for HotQuestion notification cron selection.
  *
