@@ -1,10 +1,6 @@
 This file describes changes in the Hot Question code.
 
 === Deferred to a later version. ===
-20210325 HotQuestion_691 - Need to add to the documentation on Moodle.
-    20260322 Verified not fixed: tracker status remains open and no repository
-        changes indicate completion of the requested Moodle.org documentation
-        update.
 20220430 HotQuestion_853 - Sometimes when a user has no question submitted, they
     are getting a grade anyway. This is listed without details in v4.2.4.
 20220630 HotQuestion_880 - Need to work on lib.php function
@@ -12,9 +8,6 @@ This file describes changes in the Hot Question code.
     20260322 Verified not fixed: hotquestion_user_outline() in lib.php
         (lines 232-236) returns empty stdClass with no data; function stub
         exists but contains no implementation to populate time or info fields.
-20220706 HotQuestion_881 - When Whole Hot Question grading is NOT enabled, the
-    Activity completion should reflect that. See the ticket for details.
-    Listed in v4.2.4 but not sure if it is fixed. So, verify.
 20220705 HotQuestion_884 - Feature request issue #59 - implement word limit.
     20260322 Verified not fixed: no word limit feature exists in the plugin;
         no settings or backend code for limiting question submission length
@@ -24,6 +17,9 @@ This file describes changes in the Hot Question code.
     20260322 Verified not fixed: mod_form.php (lines 431-445) contains only
         a single 'editor' element with no option to select between plain text
         and HTML editor; no plaintext toggle setting exists in the plugin.
+20220706 HotQuestion_881 - When Whole Hot Question grading is NOT enabled, the
+    Activity completion should reflect that. See the ticket for details.
+    Listed in v4.2.4 but not sure if it is fixed. So, verify.
 20220821 HotQuestion_911 - Need to see about including grades in the Export tool.
     Listed in v4.2.4 section, but without resolution details.
 20230120 HotQuestion_995 - The grade table needs more info included in the download. 
@@ -51,9 +47,23 @@ This file describes changes in the Hot Question code.
     20231201 Started investigating how to do this. Listed in v4.2.4
         section, but without resolution details, if any.
 
+=== 5.1.2 === 2026063000
+20210325 HotQuestion_691r - Need to add to the documentation on Moodle.
+    2026063003 - Created local iContent documentation version for on-server
+        development and testing workflows.
+    2026063004 - Created Moodle.org Wiki-converted documentation version for
+        publication and transfer.
+20260527 HotQuestion_1492r - Fatal error - new mobile implementation #127.
+    2026063001 - Fixed Moodle 5.x PHPUnit class-name collision by keeping
+        mobile_output_test.php only in tests/output (deprecated tests/ location removed).
+    2026063002 - Fixed mobile sorting regression test assertion order in
+        tests/output/mobile_output_test.php so question-position checks compare
+        expected/actual values correctly.
 
-=== 5.1.1 === pending
-20230308 HotQuestion_1018bt - Need to see about adding tags to question entries.
+
+
+=== 5.1.1 === 2026051800
+20230308 HotQuestion_1018r - Need to see about adding tags to question entries.
     20260516 Implemented (bt): added per-question tagging support using
         mod_hotquestion/hotquestion_questions tag area, including submit-form
         tag input, tag persistence on question save, question tag display in
@@ -62,16 +72,16 @@ This file describes changes in the Hot Question code.
     20260516 Follow-up fix: added missing tagarea_hotquestion_questions
         language string and resolved tag-index whoops by changing
         mod/jplayer/lib.php to require its local locallib.php via __DIR__.
-20260514 HotQuestion_1480bt - Remove deprecated FEATURE_GROUPMEMBERSONLY support.
+20260514 HotQuestion_1480r - Remove deprecated FEATURE_GROUPMEMBERSONLY support.
     20260516 Verified fixed: removed FEATURE_GROUPMEMBERSONLY handling from
         hotquestion_supports() in lib.php while keeping FEATURE_GROUPS and
         FEATURE_GROUPINGS behavior unchanged for supported Moodle.org versions.
-20260516  HotQuestion_1483bt - Fixing Code prechecks in v5.1.0 release.
+20260516 HotQuestion_1483r - Fixing Code prechecks in v5.1.0 release.
     20260516 Precheck cleanup: removed obsolete module.js, moved 
         mobile_output_test.php to tests/output, added mobile_view mustache
         example context, and switched mobile_submit_question bindings to XML-safe
         bind/on syntax.
-20260518 HotQuestion_1487 - Issue #126 Notifications feature - generates
+20260518 HotQuestion_1487r - Issue #126 Notifications feature - generates
     thousands of emails in big sites.
     20260518 Fixed: notifications now use a per-activity
         notificationsenabledtime baseline so only questions created after
@@ -79,9 +89,6 @@ This file describes changes in the Hot Question code.
         tasks. Upgrade sets the baseline for already-enabled activities and
         marks older rows as mailed to prevent legacy backlog floods. Added
         cron_task_test.php regression coverage; focused PHPUnit slice passed.
-20260527 HotQuestion_1492 - Fatal error - new mobile implementation #127.
-
-
 
 === 5.1.0 === 20260516
 20200522 Converted TRK1_142 to HotQuestion_485r, Activity heading does not
