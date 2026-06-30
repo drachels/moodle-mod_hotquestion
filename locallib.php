@@ -1195,7 +1195,7 @@ function mod_hotquestion_get_tagged_questions($tag, $exclusivemode = false, $fro
             continue;
         }
         $modinfo = get_fast_modinfo($builder->get_course($courseid));
-        $builder->walk(function($taggeditem) use ($courseid, $modinfo, $builder) {
+        $builder->walk(function ($taggeditem) use ($courseid, $modinfo, $builder) {
             if ((int)$taggeditem->courseid === (int)$courseid) {
                 $accessible = false;
                 if (($cm = $modinfo->get_cm($taggeditem->cmid)) && $cm->uservisible) {
