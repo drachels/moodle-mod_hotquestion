@@ -79,6 +79,9 @@ This file describes changes in the Hot Question code.
         tasks. Upgrade sets the baseline for already-enabled activities and
         marks older rows as mailed to prevent legacy backlog floods. Added
         cron_task_test.php regression coverage; focused PHPUnit slice passed.
+20260527 HotQuestion_1492 - Fatal error - new mobile implementation #127.
+
+
 
 === 5.1.0 === 20260516
 20200522 Converted TRK1_142 to HotQuestion_485r, Activity heading does not
