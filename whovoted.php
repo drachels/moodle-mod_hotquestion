@@ -94,7 +94,12 @@ $returnurl = new moodle_url('/mod/hotquestion/view.php', ['id' => $cm->id]);
 if (!empty($hq->get_currentround()->id)) {
     $returnurl->param('round', (int)$hq->get_currentround()->id);
 }
-echo $OUTPUT->single_button($returnurl, get_string('returnto', 'hotquestion', format_string($hq->instance->name)));
+echo $OUTPUT->single_button(
+    $returnurl,
+    get_string('returnto', 'hotquestion', format_string($hq->instance->name)),
+    'post',
+    ["class" => "mb-3"]
+);
 
 if (empty($questions)) {
     echo $OUTPUT->notification(get_string('noquestions', 'hotquestion'), 'info');
@@ -110,7 +115,7 @@ $table->head = [
     get_string('whovotedvoters', 'hotquestion'),
 ];
 $table->align = ['left', 'left', 'left', 'left'];
-$table->attributes['class'] = 'generaltable';
+$table->attributes['class'] = 'table generaltable table-reboot table-hover table-striped';
 
 foreach ($questions as $question) {
     $namefields = \core_user\fields::get_name_fields(true, 'u');
