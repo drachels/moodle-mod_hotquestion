@@ -68,6 +68,7 @@ Feature: When posting a question while viewing a closed round, the question post
     And I follow "Previous round"
     Then I should see "Round 1 second question by student 1"
     And I should see "Round 1 first question by student 1"
+    And I follow "Next round"
     And I set the following fields to these values:
       | Submit your question here: | Round 2 fifth question by student 2 |
     And I press "Click to post"
@@ -77,6 +78,7 @@ Feature: When posting a question while viewing a closed round, the question post
     And I follow "Previous round"
     Then I should see "Round 1 second question by student 1"
     And I should see "Round 1 first question by student 1"
+    And I follow "Next round"
     And I set the following fields to these values:
       | Submit your question here: | Round 2 sixth question by student 2 |
     And I set the field "Display as anonymous" to "1"

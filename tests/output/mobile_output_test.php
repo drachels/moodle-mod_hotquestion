@@ -29,7 +29,16 @@ final class mobile_output_test extends \advanced_testcase {
      * Mobile sorting updates preferences and affects question ordering.
      */
     public function test_mobile_course_view_sorting_preferences_and_order(): void {
-        global $DB;
+        global $CFG, $DB;
+
+        // Only run on Moodle greater than 4.5 (branch 405).
+        if ($CFG->branch <= 405) {
+            $this->markTestSkipped(
+                'Only supported on Moodle greater than 4.5. Otherwise there is a warning "' .
+                '\'The following name fields are missing from the user object: firstnamephonetic, ' .
+                'lastnamephonetic, middlename, alternatename\'.'
+            );
+        }
 
         $this->resetAfterTest();
 
@@ -83,7 +92,7 @@ final class mobile_output_test extends \advanced_testcase {
 
         $this->assertNotFalse($defaultalphapos);
         $this->assertNotFalse($defaultzulupos);
-        $this->assertLessThan($defaultzulupos, $defaultalphapos);
+        $this->assertLessThan($defaultalphapos, $defaultzulupos);
 
         $sortedresult = mobile::mobile_course_view([
             'cmid' => (int)$module->cmid,
