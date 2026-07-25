@@ -32,6 +32,6 @@ Feature: Remove links include confirmation before deleting entries
     Given I log in as "teacher1"
     When I am on "Course 1" course homepage
     And I follow "Test hotquestion name"
-    Then the page source should contain "Confirm you want to delete entry"
+    Then the "onclick" attribute of "a[href*='action=remove&q=']" "css_element" should contain "Confirm you want to delete entry"
     And I click on "Remove" "link" in the "Question pending remove confirmation" "table_row"
     And I should not see "Question pending remove confirmation"
