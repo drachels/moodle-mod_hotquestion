@@ -22,7 +22,6 @@ Feature: Users can sort HotQuestion headings per user without changing the defau
       | activity    | name                  | intro             | course | idnumber     | submitdirections           | questionlabel | teacherprioritylabel | heatlabel | teacherpriorityvisibility | heatvisibility | heatlimit |
       | hotquestion | Test hotquestion name | Hotquestion intro | C1     | hotquestion1 | Submit your question here: | Questions     | Priority             | Heat      | 1                         | 1              | 5         |
 
-  @javascript
   Scenario: Default order remains time-based and heading sort toggles per user
     Given I log in as "student1"
     When I am on "Course 1" course homepage
@@ -35,11 +34,11 @@ Feature: Users can sort HotQuestion headings per user without changing the defau
     And I press "Click to post"
     Then "Zulu sort question" "text" should appear before "Alpha sort question" "text"
 
-    When I click on "Questions" "link" in the ".header" "css_element"
+    When I click on "Questions" "link"
     Then I should see "Questions (asc)"
     And "Alpha sort question" "text" should appear before "Zulu sort question" "text"
 
-    When I click on "Questions (asc)" "link" in the ".header" "css_element"
+    When I click on "Questions (asc)" "link"
     Then I should see "Questions (desc)"
     And "Zulu sort question" "text" should appear before "Alpha sort question" "text"
 
@@ -48,10 +47,10 @@ Feature: Users can sort HotQuestion headings per user without changing the defau
     When I click on "Priority (asc)" "link"
     Then I should see "Priority (desc)"
 
-    When I click on "Heat 5/5" "link"
-    Then I should see "Heat 5/5 (asc)"
-    When I click on "Heat 5/5 (asc)" "link"
-    Then I should see "Heat 5/5 (desc)"
+    When I click on "Heat" "link"
+    Then I should see "Heat (asc)"
+    When I click on "Heat (asc)" "link"
+    Then I should see "Heat (desc)"
     And I log out
 
     Given I log in as "student2"

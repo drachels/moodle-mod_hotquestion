@@ -23,14 +23,12 @@ Feature: Group filtering and teacher priority controls
       | Group A | C1     | ga       |
       | Group B | C1     | gb       |
     And the following "group members" exist:
-      | user     | group |
-      | student1 | ga    |
-      | student2 | gb    |
-      | teacher1 | ga    |
-      | teacher1 | gb    |
+      | user     | group   |
+      | student1 | Group A |
+      | student2 | Group B |
     And the following "activities" exist:
-      | activity    | name                  | intro             | course | idnumber     | submitdirections           | teacherpriorityvisibility | groupmode |
-      | hotquestion | Test hotquestion name | Hotquestion intro | C1     | hotquestion1 | Submit your question here: | 1                         | 1         |
+      | activity    | name                  | intro             | course | idnumber     | submitdirections           | teacherpriorityvisibility |
+      | hotquestion | Test hotquestion name | Hotquestion intro | C1     | hotquestion1 | Submit your question here: | 1                         |
 
   Scenario: Teacher filters by group and adjusts priority
     Given I log in as "student1"

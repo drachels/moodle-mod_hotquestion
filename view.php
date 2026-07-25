@@ -423,7 +423,7 @@ if (!$ajax) {
     }
 
     // 20230522 Added a single row table to make both group and viewunapproved preference drop down menus work.
-    echo '<table style="width:100%" class="table-reboot mb-3"><tr><td style="width:25%>';
+    echo '<table style="width:100%" class="table-reboot"><tr><td style="width:25%>';
     // Print group information (A drop down box will be displayed if the user
     // is a member of more than one group, or has access to all groups).
     echo groups_print_activity_menu($cm, $CFG->wwwroot . '/mod/hotquestion/view.php?id=' . $cm->id);
@@ -440,8 +440,8 @@ if (!$ajax) {
             get_string('unapprovedquestionhide', 'hotquestion'),
         ];
         $htmlout = '';
-        $htmlout .= get_string('unapprovedquestionvisibility', 'hotquestion')
-                     . ' <select onchange="this.form.submit()" id="pref_visibility" class="form-select" name="vispreference">';
+        $htmlout .= '&nbsp; &nbsp; &nbsp;' . get_string('unapprovedquestionvisibility', 'hotquestion')
+                     . ' <select onchange="this.form.submit()" id="pref_visibility" class="custom-select" name="vispreference">';
         // Get the ID and name of each preference in the DB.
         foreach ($listoptions as $akey => $aval) {
             // The first if is executed ONLY when the drop down menu is clicked to change the preference.
@@ -467,7 +467,7 @@ if (!$ajax) {
 
     // 20230519 This creates the URL link button for all HotQuestions in this course.
     $url2 = '<a href="' . $CFG->wwwroot . '/mod/hotquestion/index.php?id=' . $course->id
-        . '"class="btn btn-outline-secondary">'
+        . '"class="btn btn-link">'
         . get_string('viewallhotquestions', 'hotquestion', $hotquestion->name)
         . '</a>';
     echo '<td style="width:25%; text-align:right">' . $url2 . '</td>';

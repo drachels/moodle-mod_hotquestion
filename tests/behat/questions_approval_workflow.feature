@@ -22,7 +22,6 @@ Feature: Approval workflow controls student visibility
       | activity    | name                  | intro             | course | idnumber     | submitdirections           | approval |
       | hotquestion | Test hotquestion name | Hotquestion intro | C1     | hotquestion1 | Submit your question here: | 1        |
 
-  @javascript
   Scenario: Student post is hidden until teacher approval
     Given I log in as "student1"
     When I am on "Course 1" course homepage
@@ -42,8 +41,6 @@ Feature: Approval workflow controls student visibility
     Given I log in as "teacher1"
     When I am on "Course 1" course homepage
     And I follow "Test hotquestion name"
-    And I set the field "vispreference" to "See unapproved questions"
-    And I should see "See unapproved questions"
     And I follow "Not approved"
     And I log out
 

@@ -292,7 +292,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
         if ($questions) {
             $table = new html_table();
             $table->cellpadding = 10;
-            $table->attributes['class'] = 'table generaltable table-reboot table-hover table-striped';
+            $table->class = 'generaltable';
             $table->width = '100%';
             $table->align = ['left', 'center', 'center', 'center', 'center'];
 
@@ -306,16 +306,24 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
 
             // Admin, manager and teachers headings for questions, priority, heat, remove and approved headings.
             if (has_capability('mod/hotquestion:rate', $context)) {
+                // 20210924 Changed to format_text questionlabel column setting.
                 $table->head = [
-                    $buildsortableheading(format_string(
+                    $buildsortableheading(format_text(
                         $this->hotquestion->instance->questionlabel,
+                        $format = FORMAT_MOODLE,
+                        $options = null,
+                        $courseiddonotuse = null
                     ), 'question'),
                 ];
                 // Check teacher priority column visibilty settings.
                 if ($teacherpriorityvisibility) {
                     // Priority column is visible, so show the label.
-                    $table->head[] .= $buildsortableheading(format_string(
+                    // 20210924 Changed to format_text prioritylabel column setting.
+                    $table->head[] .= $buildsortableheading(format_text(
                         $this->hotquestion->instance->teacherprioritylabel,
+                        $format = FORMAT_MOODLE,
+                        $options = null,
+                        $courseiddonotuse = null
                     ), 'tpriority');
                 } else {
                     // Priority column is not visible, so replace label with a space.
@@ -324,10 +332,14 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
 
                 // Check heat column visibilty settings for teachers.
                 if ($heatvisibility) {
+                    // 20210924 Changed to format_text heatlabel column setting.
                     // 20200526 Show heatlimit setting and how many heat/votes remain for current user.
                     // 20260324 Only show heatlimit/remaining suffix in the current round.
-                    $table->head[] .= $buildsortableheading(format_string(
+                    $table->head[] .= $buildsortableheading(format_text(
                         $this->hotquestion->instance->heatlabel,
+                        $format = FORMAT_MOODLE,
+                        $options = null,
+                        $courseiddonotuse = null
                     )
                                       . ($iscurrentround ? ' ' . $this->hotquestion->instance->heatlimit
                                       . '/' . $temp : ''), 'votecount');
@@ -336,24 +348,40 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                     $table->head[] .= ' ';
                 }
 
-                    $table->head[] .= format_string(
+                    // 20210924 Changed to format_text removelabel column setting.
+                    $table->head[] .= format_text(
                         $this->hotquestion->instance->removelabel,
+                        $format = FORMAT_MOODLE,
+                        $options = null,
+                        $courseiddonotuse = null
                     );
-                    $table->head[] .= format_string(
+                    // 20210924 Changed to format_text  approvallabel column setting.
+                    $table->head[] .= format_text(
                         $this->hotquestion->instance->approvallabel,
+                        $format = FORMAT_MOODLE,
+                        $options = null,
+                        $courseiddonotuse = null
                     );
             } else {
                 // Students only see headings for questions, priority, and heat columns.
+                // 20210924 Changed to format_text questionlabel column setting.
                 $table->head = [
-                    $buildsortableheading(format_string(
+                    $buildsortableheading(format_text(
                         $this->hotquestion->instance->questionlabel,
+                        $format = FORMAT_MOODLE,
+                        $options = null,
+                        $courseiddonotuse = null
                     ), 'question'),
                 ];
                 // Check teacher priority column visibilty settings.
                 if ($teacherpriorityvisibility) {
+                    // 20210924 Changed to format_text prioritylabel column setting.
                     // Priority column is visible, so show the label.
-                    $table->head[] .= $buildsortableheading(format_string(
+                    $table->head[] .= $buildsortableheading(format_text(
                         $this->hotquestion->instance->teacherprioritylabel,
+                        $format = FORMAT_MOODLE,
+                        $options = null,
+                        $courseiddonotuse = null
                     ), 'tpriority');
                 } else {
                     // Priority column is not visible, so replace label with a space.
@@ -362,10 +390,14 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
 
                 // Check heat column visibilty settings for students.
                 if ($heatvisibility) {
+                    // 20210924 Changed to format_text heatlabel column setting.
                     // Heat column is visible, so show the label.
                     // 20260324 Only show heatlimit/remaining suffix in the current round.
-                    $table->head[] .= $buildsortableheading(format_string(
+                    $table->head[] .= $buildsortableheading(format_text(
                         $this->hotquestion->instance->heatlabel,
+                        $format = FORMAT_MOODLE,
+                        $options = null,
+                        $courseiddonotuse = null
                     )
                                                   . ($iscurrentround ? ' ' . $this->hotquestion->instance->heatlimit
                                                   . '/' . $temp : ''), 'votecount');
