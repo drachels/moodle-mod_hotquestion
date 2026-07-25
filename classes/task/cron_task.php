@@ -16,6 +16,8 @@
 
 namespace mod_hotquestion\task;
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Main scheduled task for hotquestion notifications.
  *
@@ -55,16 +57,12 @@ class cron_task extends \core\task\scheduled_task {
         $queuedusers = 0;
         $queueddigests = 0;
         $queuedindividual = 0;
-        $processedquestionids = [];
 
         foreach ($questions as $question) {
             $recipients = $this->get_notification_recipients($question);
             if (empty($recipients)) {
-                $this->log('No recipients found for question id ' . $question->id . '.', 1);
                 continue;
             }
-
-            $questionqueued = false;
 
             foreach ($recipients as $recipient) {
                 $taskdata = [$question->id];
@@ -77,7 +75,6 @@ class cron_task extends \core\task\scheduled_task {
                     $task->set_custom_data($taskdata);
                     \core\task\manager::queue_adhoc_task($task, true);
                     $queueddigests++;
-                    $questionqueued = true;
                 } else {
                     $task = new send_user_notifications();
                     $task->set_userid($recipient->id);
@@ -85,23 +82,14 @@ class cron_task extends \core\task\scheduled_task {
                     $task->set_custom_data($taskdata);
                     \core\task\manager::queue_adhoc_task($task, true);
                     $queuedindividual++;
-                    $questionqueued = true;
                 }
 
                 $queuedusers++;
             }
-
-            if ($questionqueued) {
-                $processedquestionids[] = (int) $question->id;
-            }
         }
 
-        if (!empty($processedquestionids)) {
-            [$in, $params] = $DB->get_in_or_equal($processedquestionids);
-            $DB->set_field_select('hotquestion_questions', 'mailed', 1, "id {$in}", $params);
-        } else {
-            $this->log('No notification tasks were queued; mailed flags unchanged.', 1);
-        }
+        [$in, $params] = $DB->get_in_or_equal(array_keys($questions));
+        $DB->set_field_select('hotquestion_questions', 'mailed', 1, "id {$in}", $params);
 
         $this->log_finish(
             'Queued ' . $queuedindividual . ' individual and ' .
@@ -119,18 +107,12 @@ class cron_task extends \core\task\scheduled_task {
     protected function get_unmailed_questions($cutoff) {
         global $DB;
 
-        $sql = "SELECT hqq.id,
-                   hqq.hotquestion,
-                   hqq.userid,
-                   hqq.time
+                $sql = "SELECT hqq.id, hqq.hotquestion, hqq.userid, hqq.time
                   FROM {hotquestion_questions} hqq
                   JOIN {hotquestion} hq ON hq.id = hqq.hotquestion
                  WHERE hqq.mailed = 0
                    AND hqq.time <= :cutoff
-                   AND hq.notifications = 1
-                   AND hq.notificationsenabledtime > 0
-                   AND hqq.time >= hq.notificationsenabledtime";
-        $this->log($sql, 1);
+                   AND hq.notifications = 1";
 
         return $DB->get_records_sql($sql, ['cutoff' => $cutoff]);
     }
