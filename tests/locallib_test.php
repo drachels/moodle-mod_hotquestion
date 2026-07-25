@@ -171,6 +171,165 @@ final class locallib_test extends \advanced_testcase {
     }
 
     /**
+     * Users without posted questions must not inherit another user's grade.
+     */
+    public function test_hotquestion_get_user_grades_keeps_empty_users_ungraded(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $author = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $observer = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $module = $this->getDataGenerator()->create_module('hotquestion', [
+            'course' => $course->id,
+            'grade' => 100,
+            'postmaxgrade' => 5,
+        ]);
+
+        $hq = new \mod_hotquestion($module->cmid);
+        $round = $hq->get_currentround();
+
+        $DB->insert_record('hotquestion_questions', [
+            'hotquestion' => $module->id,
+            'content' => 'Only author posts',
+            'format' => FORMAT_HTML,
+            'userid' => $author->id,
+            'time' => $round->starttime + 10,
+            'anonymous' => 0,
+            'approved' => 1,
+            'tpriority' => 5,
+            'mailed' => 0,
+        ]);
+
+        $hq->update_users_grades([$author->id]);
+
+        $hotquestionrecord = $DB->get_record('hotquestion', ['id' => $module->id], '*', MUST_EXIST);
+        $hotquestionrecord->cmid = $module->cmid;
+        $grades = \hotquestion_get_user_grades($hotquestionrecord);
+
+        $this->assertArrayHasKey($author->id, $grades);
+        $this->assertArrayHasKey($observer->id, $grades);
+        $this->assertNotNull($grades[$author->id]->rawgrade);
+        $this->assertNull($grades[$observer->id]->rawgrade);
+    }
+
+    /**
+     * User outline should summarize question count and latest activity time.
+     */
+    public function test_hotquestion_user_outline_reports_post_summary(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $author = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $observer = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $module = $this->getDataGenerator()->create_module('hotquestion', [
+            'course' => $course->id,
+        ]);
+
+        $hq = new \mod_hotquestion($module->cmid);
+        $round = $hq->get_currentround();
+
+        $firsttime = $round->starttime + 10;
+        $lasttime = $round->starttime + 20;
+        $DB->insert_record('hotquestion_questions', [
+            'hotquestion' => $module->id,
+            'content' => 'First post',
+            'format' => FORMAT_HTML,
+            'userid' => $author->id,
+            'time' => $firsttime,
+            'anonymous' => 0,
+            'approved' => 1,
+            'tpriority' => 0,
+            'mailed' => 0,
+        ]);
+        $DB->insert_record('hotquestion_questions', [
+            'hotquestion' => $module->id,
+            'content' => 'Second post',
+            'format' => FORMAT_HTML,
+            'userid' => $author->id,
+            'time' => $lasttime,
+            'anonymous' => 0,
+            'approved' => 1,
+            'tpriority' => 0,
+            'mailed' => 0,
+        ]);
+
+        $outline = \hotquestion_user_outline($course->id, $author->id, $module->cmid, $module->id);
+        $this->assertNotNull($outline);
+        $this->assertEquals($lasttime, $outline->time);
+        $this->assertStringContainsString('2', $outline->info);
+
+        $nooutline = \hotquestion_user_outline($course->id, $observer->id, $module->cmid, $module->id);
+        $this->assertNull($nooutline);
+    }
+
+    /**
+     * Completion pass condition must be ignored when grading is disabled.
+     */
+    public function test_completion_state_ignores_pass_when_grading_disabled(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $module = $this->getDataGenerator()->create_module('hotquestion', [
+            'course' => $course->id,
+            'grade' => 0,
+            'completionpost' => 1,
+            'completionpass' => 1,
+        ]);
+
+        $cm = get_coursemodule_from_instance('hotquestion', $module->id, $course->id, false, MUST_EXIST);
+
+        // Meet the post-count rule.
+        $hq = new \mod_hotquestion($module->cmid);
+        $round = $hq->get_currentround();
+        $DB->insert_record('hotquestion_questions', [
+            'hotquestion' => $module->id,
+            'content' => 'Completion post',
+            'format' => FORMAT_HTML,
+            'userid' => $user->id,
+            'time' => $round->starttime + 10,
+            'anonymous' => 0,
+            'approved' => 1,
+            'tpriority' => 0,
+            'mailed' => 0,
+        ]);
+
+        $state = \hotquestion_get_completion_state($course, $cm, $user->id, COMPLETION_AND);
+        $this->assertTrue($state);
+    }
+
+    /**
+     * Completion description must not show passing-grade requirement when grading is disabled.
+     */
+    public function test_completion_descriptions_hide_pass_when_grading_disabled(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $module = $this->getDataGenerator()->create_module('hotquestion', [
+            'course' => $course->id,
+            'grade' => 0,
+            'completionpost' => 1,
+            'completionpass' => 1,
+            'completion' => COMPLETION_TRACKING_AUTOMATIC,
+        ]);
+
+        // Re-fetch cm_info so custom completion descriptions are generated from current customdata.
+        $modinfo = get_fast_modinfo($course);
+        $cm = $modinfo->get_cm($module->cmid);
+        $descriptions = \mod_hotquestion_get_completion_active_rule_descriptions($cm);
+
+        $this->assertContains(get_string('completionpostdesc', 'hotquestion', 1), $descriptions);
+        $this->assertNotContains(get_string('completionpassdesc', 'hotquestion', 1), $descriptions);
+    }
+
+    /**
      * Create an activity with two questions whose ordering reveals tpriority influence.
      *
      * @param int $grade Activity grade setting. Non-zero means grading enabled.

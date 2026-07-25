@@ -325,9 +325,27 @@ function get_question_list($hotquestionid) {
  * @return null
  */
 function hotquestion_user_outline($course, $user, $mod, $hotquestion) {
+    global $DB;
+
+    $params = [
+        'hotquestionid' => $hotquestion,
+        'userid' => $user,
+    ];
+    $sql = "SELECT COUNT(hqq.id) AS questioncount,
+                   MAX(hqq.time) AS lasttime
+              FROM {hotquestion_questions} hqq
+             WHERE hqq.hotquestion = :hotquestionid
+               AND hqq.userid = :userid";
+
+    $summary = $DB->get_record_sql($sql, $params);
+    if (empty($summary) || empty($summary->questioncount)) {
+        return null;
+    }
+
     $return = new stdClass();
-    $return->time = 0;
-    $return->info = '';
+    $return->time = (int)$summary->lasttime;
+    $return->info = get_string('userquestionsummary', 'hotquestion', (int)$summary->questioncount);
+
     return $return;
 }
 
@@ -873,9 +891,10 @@ function hotquestion_get_completion_state($course, $cm, $userid, $type) {
 
     // Get hotquestion details.
     $hotquestion = $DB->get_record('hotquestion', ['id' => $cm->instance], '*', MUST_EXIST);
+    $gradeenabled = !empty($hotquestion->grade);
 
     // If completion option is enabled, evaluate it and return true/false.
-    if (!$hotquestion->completionpost && !$hotquestion->completionvote && !$hotquestion->completionpass) {
+    if (!$hotquestion->completionpost && !$hotquestion->completionvote && (!$gradeenabled || !$hotquestion->completionpass)) {
         return $type;
     }
 
@@ -914,7 +933,7 @@ function hotquestion_get_completion_state($course, $cm, $userid, $type) {
     }
 
     // Check for passing grade.
-    if ($hotquestion->completionpass) {
+    if ($hotquestion->completionpass && $gradeenabled) {
         require_once($CFG->libdir . '/gradelib.php');
         $item = grade_item::fetch([
             'courseid' => $course->id,
@@ -949,7 +968,7 @@ function hotquestion_get_coursemodule_info($coursemodule) {
     global $DB;
 
     $dbparams = ['id' => $coursemodule->instance];
-    $fields = 'id, name, intro, introformat, completionpost, completionvote, completionpass, timeopen, timeclose';
+    $fields = 'id, name, intro, introformat, grade, completionpost, completionvote, completionpass, timeopen, timeclose';
     if (!$hotquestion = $DB->get_record('hotquestion', $dbparams, $fields)) {
         return false;
     }
@@ -964,9 +983,12 @@ function hotquestion_get_coursemodule_info($coursemodule) {
 
     // Populate the custom completion rules as key => value pairs, but only if the completion mode is 'automatic'.
     if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
+        $gradeenabled = !empty($hotquestion->grade);
         $result->customdata['customcompletionrules']['completionpost'] = $hotquestion->completionpost;
         $result->customdata['customcompletionrules']['completionvote'] = $hotquestion->completionvote;
-        $result->customdata['customcompletionrules']['completionpass'] = $hotquestion->completionpass;
+        // A pass-grade completion condition is only meaningful when grading is enabled.
+        $result->customdata['customcompletionrules']['completionpass'] = $gradeenabled ? $hotquestion->completionpass : 0;
+        $result->customdata['gradeenabled'] = $gradeenabled;
     }
 
     // Populate some other values that can be used in calendar or on dashboard.
@@ -1010,7 +1032,8 @@ function mod_hotquestion_get_completion_active_rule_descriptions($cm) {
                 }
                 break;
             case 'completionpass':
-                if (!empty($val)) {
+                $gradeenabled = !empty($cm->customdata['gradeenabled']);
+                if ($gradeenabled && !empty($val)) {
                     $descriptions[] = get_string('completionpassdesc', 'hotquestion', $val);
                 }
                 break;
@@ -1129,11 +1152,13 @@ function hotquestion_get_user_grades(stdclass $hotquestion, int $userid = 0) {
 
     $grades = [];
     $now = time();
-    $grade = new stdClass();
-    $grade->dategraded = $now;
-    $grade->datesubmitted = $now;
-    $grade->rawgrade = null;
     foreach ($users as $userid => $rating) {
+        // Reset grade payload for each user so unrated users never inherit prior rawgrade values.
+        $grade = new stdClass();
+        $grade->dategraded = $now;
+        $grade->datesubmitted = $now;
+        $grade->rawgrade = null;
+
         if (isset($rating->rawrating)) {
             $factor = $rating->rawrating / max($hotquestion->postmaxgrade, 1);
             if ($factor > 1.0) {

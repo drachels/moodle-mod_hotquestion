@@ -10,9 +10,6 @@ This file describes changes in the Hot Question code.
     20260322 Verified not fixed: mod_form.php (lines 431-445) contains only
         a single 'editor' element with no option to select between plain text
         and HTML editor; no plaintext toggle setting exists in the plugin.
-20220706 HotQuestion_881 - When Whole Hot Question grading is NOT enabled, the
-    Activity completion should reflect that. See the ticket for details.
-    Listed in v4.2.4 but not sure if it is fixed. So, verify.
 20220821 HotQuestion_911 - Need to see about including grades in the Export tool.
     Listed in v4.2.4 section, but without resolution details.
 20230120 HotQuestion_995 - The grade table needs more info included in the download. 
@@ -41,19 +38,26 @@ This file describes changes in the Hot Question code.
         section, but without resolution details, if any.
 
 === 5.1.3 === pending
-20220430 HotQuestion_853 - Sometimes when a user has no question submitted, they
+20220430 HotQuestion_853bt - Sometimes when a user has no question submitted, they
     are getting a grade anyway. This is listed without details in v4.2.4.
-    20260725 Fixed (unreleased): corrected hotquestion_get_user_grades()
+    2026072501 Fixed (unreleased): corrected hotquestion_get_user_grades()
         per-user grade initialization so users with no questions no longer
         inherit another user's rawgrade value.
-20220630 HotQuestion_880 - Need to work on lib.php function
+20220630 HotQuestion_880bt - Need to work on lib.php function
     hotquestion_user_outline.
     20260322 Verified not fixed: hotquestion_user_outline() in lib.php
         (lines 232-236) returns empty stdClass with no data; function stub
         exists but contains no implementation to populate time or info fields.
-    20260725 Fixed (unreleased): implemented hotquestion_user_outline() to
+    2026072501 Fixed (unreleased): implemented hotquestion_user_outline() to
         return null when the user has no entries, and otherwise return latest
         post time plus summary text with posted question count.
+20220706 HotQuestion_881bt - When Whole Hot Question grading is NOT enabled, the
+    Activity completion should reflect that. See the ticket for details.
+    2026072501 Fixed (unreleased): completion pass-grade requirement is now
+        ignored and hidden when activity grading is disabled (grade type None),
+        preventing pass-grade completion from blocking post/vote completion on
+        non-graded activities. Added PHPUnit coverage for completion state and
+        active-rule descriptions.
 
 === 5.1.2 === 2026063000
 20210325 HotQuestion_691r - Need to add to the documentation on Moodle.
