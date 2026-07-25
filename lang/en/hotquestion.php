@@ -260,6 +260,7 @@ $string['unapprovedquestionhide'] = 'Hide unapproved questions';
 $string['unapprovedquestionnotset'] = 'Preference not set';
 $string['unapprovedquestionsee'] = 'See unapproved questions';
 $string['unapprovedquestionvisibility'] = 'Unapproved question visibility';
+$string['userquestionsummary'] = 'Posted {$a} question(s).';
 $string['userid'] = 'Userid';
 $string['valueinterror'] = 'The factor must be a positive integer number';
 $string['viewaftertimeclose'] = 'View after close time';
