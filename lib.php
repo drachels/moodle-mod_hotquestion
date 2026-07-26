@@ -322,7 +322,7 @@ function get_question_list($hotquestionid) {
  * @param int $hotquestion
  * $return->time = the time they did it
  * $return->info = a short text description
- * @return null
+ * @return stdClass|null
  */
 function hotquestion_user_outline($course, $user, $mod, $hotquestion) {
     global $DB;

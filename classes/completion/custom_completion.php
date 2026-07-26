@@ -19,8 +19,6 @@ declare(strict_types=1);
 namespace mod_hotquestion\completion;
 
 use core_completion\activity_custom_completion;
-use grade_grade;
-use grade_item;
 
 /**
  * Activity custom completion subclass for the hotquestion activity.
@@ -82,7 +80,7 @@ class custom_completion extends activity_custom_completion {
                 return COMPLETION_INCOMPLETE;
             }
 
-            $item = grade_item::fetch([
+            $item = \grade_item::fetch([
                 'courseid' => $this->cm->course,
                 'itemtype' => 'mod',
                 'itemmodule' => 'hotquestion',
@@ -93,7 +91,7 @@ class custom_completion extends activity_custom_completion {
                 return COMPLETION_INCOMPLETE;
             }
 
-            $grades = grade_grade::fetch_users_grades($item, [$userid], false);
+            $grades = \grade_grade::fetch_users_grades($item, [$userid], false);
             if (empty($grades[$userid])) {
                 return COMPLETION_INCOMPLETE;
             }
