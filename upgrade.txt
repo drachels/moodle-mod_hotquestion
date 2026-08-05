@@ -38,7 +38,7 @@ This file describes changes in the Hot Question code.
         section, but without resolution details, if any.
 
 === 5.1.4 === pending
-20260805 HotQuestion_1524 - Issue #129 at github shows duplciate mobile_output_test.php.
+20260805 HotQuestion_1524bt - Issue #129 at github shows duplciate mobile_output_test.php.
     files.
     2026080501 Looking at code. Removed the duplicate file from mod/hotquestion/tests/.
 
