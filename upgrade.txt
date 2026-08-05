@@ -38,6 +38,11 @@ This file describes changes in the Hot Question code.
         section, but without resolution details, if any.
 
 === 5.1.3+ === (Build: 2026080100)
+2026080501 HotQuestion_1494r - Issue #129 fatal class redeclaration on Moodle 5.3.
+    20260805 Fixed: removed deprecated duplicate PHPUnit file
+        tests/mobile_output_test.php so class
+        mod_hotquestion\output\mobile_output_test is declared only once
+        from tests/output/mobile_output_test.php.
 20220430 HotQuestion_853bt - Sometimes when a user has no question submitted, they
     are getting a grade anyway. This is listed without details in v4.2.4.
     2026072501 Fixed (unreleased): corrected hotquestion_get_user_grades()
