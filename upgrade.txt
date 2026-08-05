@@ -37,6 +37,11 @@ This file describes changes in the Hot Question code.
     20231201 Started investigating how to do this. Listed in v4.2.4
         section, but without resolution details, if any.
 
+=== 5.1.4 === pending
+20260805 HotQuestion_1524 - Issue #129 at github shows duplciate mobile_output_test.php.
+    files.
+    2026080501 Looking at code. Removed the duplicate file from mod/hotquestion/tests/.
+
 === 5.1.3+ === (Build: 2026080100)
 2026080501 HotQuestion_1494r - Issue #129 fatal class redeclaration on Moodle 5.3.
     20260805 Fixed: removed deprecated duplicate PHPUnit file
